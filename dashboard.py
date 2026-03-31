@@ -89,8 +89,6 @@ st.markdown("""
 .tag { background: #f3f4f6; border-radius: 4px; padding: 2px 8px; font-size: 0.8em; margin-right: 4px; }
 /* Remove default Streamlit top padding */
 .block-container { padding-top: 1rem !important; }
-/* Expander label font size — only the first expander (How this agent works) */
-details:first-of-type summary p { font-size: 1.1rem !important; font-weight: 600 !important; }
 </style>
 """, unsafe_allow_html=True)
 
