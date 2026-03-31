@@ -120,12 +120,12 @@ def load_company_lookup():
 
 @st.cache_data(ttl=30)
 def load_radar():
-    """Only companies that have been scored (attention_score IS NOT NULL)."""
+    """Companies scored ≥55 (below threshold are dropped per design)."""
     try:
         return (
             supabase.table("companies")
             .select("*")
-            .not_.is_("attention_score", "null")
+            .gte("attention_score", 55)
             .order("attention_score", desc=True, nullsfirst=False)
             .execute()
             .data or []
