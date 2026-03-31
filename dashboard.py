@@ -221,12 +221,34 @@ try:
         .execute()
         .count or 0
     )
-    st.markdown(
-        f"Monitors LinkedIn, hiring newsletters, and funding news for new companies · "
-        f"checks job boards at all tracked companies · scores every role and company for fit using profile details · "
-        f"delivers a prioritized to-do list with drafted outreach messages.\n\n"
-        f"**This week: {_new_jobs_wk} new roles · {_new_radar} new companies on radar.**"
-    )
+    st.markdown(f"**This week: {_new_jobs_wk} new roles · {_new_radar} new companies on radar.**")
+    with st.expander("How this agent works"):
+        st.markdown("""
+<table style="width:100%; border-collapse:collapse; font-size:0.92em;">
+<tr>
+<td style="padding:10px 14px; vertical-align:top; width:25%">
+<div style="font-size:1.4em">🏢 → 🔍</div>
+<strong>Discovers companies automatically</strong><br>
+<span style="color:#6b7280">Every Monday, polls 40+ company job boards (Ashby, Greenhouse) for open roles. Also scans funding news, LinkedIn hiring posts, and newsletters to find new AI-native companies worth tracking.</span>
+</td>
+<td style="padding:10px 14px; vertical-align:top; width:25%">
+<div style="font-size:1.4em">🤖 → 📊</div>
+<strong>Scores every role and company with Claude</strong><br>
+<span style="color:#6b7280">Each role is scored on 5 dimensions: role fit, company fit, end-user layer, growth signal, location. Scoring learns from your actions — companies you apply to become positive benchmarks; roles you skip teach it what to filter out.</span>
+</td>
+<td style="padding:10px 14px; vertical-align:top; width:25%">
+<div style="font-size:1.4em">📂 vs 🔭</div>
+<strong>Routes to Open Roles or On Radar</strong><br>
+<span style="color:#6b7280">Roles that pass scoring go to Open Roles. Companies with no open roles go to On Radar — the proactive pipeline. Every radar company gets a drafted outreach message written in your voice, based on real messages you've sent before.</span>
+</td>
+<td style="padding:10px 14px; vertical-align:top; width:25%">
+<div style="font-size:1.4em">📋 → ✅</div>
+<strong>Tracks everything, drafts everything</strong><br>
+<span style="color:#6b7280">Monitors follow-ups on applications and outreach. Generates a Monday brief with your to-do list for the week. Nothing is sent automatically — agent drafts, you review, you send.</span>
+</td>
+</tr>
+</table>
+""", unsafe_allow_html=True)
 except Exception:
     pass
 
@@ -368,6 +390,62 @@ if nav == "📡 Sources":
             f"· {result['radar_added']} companies added to Radar."
         )
         st.cache_data.clear()
+
+    st.divider()
+    st.markdown("#### Connected systems")
+    st.markdown("""
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:8px">
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">🏢 Job boards</div>
+<b>Ashby</b> · 30+ verified company slugs<br>
+<b>Greenhouse</b> · 10+ verified company slugs<br>
+<b>Work at a Startup</b> · YC company list via Apify<br>
+<span style="color:#6b7280; font-size:0.85em">Polled every Monday 9am PT</span>
+</div>
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">💰 Funding signals</div>
+<b>TechCrunch</b> · RSS feed<br>
+<b>Next Play newsletter</b> · RSS feed<br>
+<b>LinkedIn posts</b> · paste URL or text<br>
+<span style="color:#6b7280; font-size:0.85em">Scanned every Monday 9:05am PT</span>
+</div>
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">🤖 AI systems</div>
+<b>Claude Haiku</b> · role scoring (5 dimensions)<br>
+<b>Claude Sonnet</b> · outreach draft generation<br>
+<b>Claude Sonnet</b> · company attention scoring<br>
+<span style="color:#6b7280; font-size:0.85em">Learns from applied / skipped signals</span>
+</div>
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">🔵 LinkedIn</div>
+<b>Curator monitor</b> · watches accounts posting funded startup lists<br>
+<b>Post extraction</b> · paste any post, extracts companies<br>
+<span style="color:#6b7280; font-size:0.85em">Monday + Thursday 9:10am PT</span>
+</div>
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">🗄️ Database</div>
+<b>Supabase (Postgres)</b><br>
+Tables: jobs · companies · signals<br>
+Stores: scores, drafts, behavioral signals, application history<br>
+<span style="color:#6b7280; font-size:0.85em">Single source of truth</span>
+</div>
+
+<div style="background:#f9fafb; border-radius:8px; padding:14px">
+<div style="font-size:1.2em; margin-bottom:6px">⏰ Scheduler</div>
+<b>APScheduler via launchd</b><br>
+Mon 9:00am · Job board polling<br>
+Mon 9:05am · RSS scan<br>
+Mon+Thu 9:10am · LinkedIn monitor<br>
+Mon 10:00am · Monday brief
+</div>
+
+</div>
+""", unsafe_allow_html=True)
 
 
 # ===========================================================================
