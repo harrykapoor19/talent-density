@@ -78,7 +78,7 @@ def _derive_stage(job: dict) -> str:
 load_dotenv()
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-st.set_page_config(page_title="Job Agent", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="Job Agent", layout="wide", page_icon="🥑")
 
 st.markdown("""
 <style>
@@ -199,11 +199,12 @@ with col_refresh:
         st.cache_data.clear()
         st.rerun()
 
-# This week summary — always visible at top
 _today_utc = datetime.now(timezone.utc)
 _last_monday = (_today_utc - timedelta(days=_today_utc.weekday())).replace(
     hour=0, minute=0, second=0, microsecond=0
 )
+
+# Compute this week stats (used in "This week" line below metrics)
 try:
     _new_jobs_wk = (
         supabase.table("jobs")
@@ -221,40 +222,42 @@ try:
         .execute()
         .count or 0
     )
-    st.markdown(f"**This week: {_new_jobs_wk} new roles · {_new_radar} new companies on radar.**")
-    with st.expander("How this agent works"):
-        st.markdown("""
+except Exception:
+    _new_jobs_wk = 0
+    _new_radar = 0
+
+_total_cos = len(company_lookup) or 70
+
+with st.expander("How this agent works"):
+    st.markdown(f"""
 <table style="width:100%; border-collapse:collapse; font-size:0.92em;">
 <tr>
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">🏢 → 🔍</div>
 <strong>Discovers companies automatically</strong><br>
-<span style="color:#6b7280">Every Monday, polls 40+ company job boards (Ashby, Greenhouse) for open roles. Also scans funding news, LinkedIn hiring posts, and newsletters to find new AI-native companies worth tracking.</span>
+<span style="color:#6b7280">Every Monday, I poll all {_total_cos}+ tracked company job boards (Ashby, Greenhouse) for open roles. The agent also scans funding news, LinkedIn hiring posts, and newsletters to find new AI-native companies worth adding.</span>
 </td>
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">🤖 → 📊</div>
 <strong>Scores every role and company with Claude</strong><br>
-<span style="color:#6b7280">Each role is scored on 5 dimensions: role fit, company fit, end-user layer, growth signal, location. Scoring learns from your actions — companies you apply to become positive benchmarks; roles you skip teach it what to filter out.</span>
+<span style="color:#6b7280">Each role is scored on 5 dimensions: role fit, company fit, end-user layer, growth signal, location. Scoring learns from my actions: companies I apply to become positive benchmarks; roles I skip teach it what to filter out.</span>
 </td>
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">📂 vs 🔭</div>
 <strong>Routes to Open Roles or On Radar</strong><br>
-<span style="color:#6b7280">Roles that pass scoring go to Open Roles. Companies with no open roles go to On Radar — the proactive pipeline. Every radar company gets a drafted outreach message written in your voice, based on real messages you've sent before.</span>
+<span style="color:#6b7280">Roles that pass scoring go to Open Roles. Companies with no open roles go to On Radar, the proactive pipeline. Every radar company gets a drafted outreach message written in my voice, based on real messages I've sent before.</span>
 </td>
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">📋 → ✅</div>
 <strong>Tracks everything, drafts everything</strong><br>
-<span style="color:#6b7280">Monitors follow-ups on applications and outreach. Generates a Monday brief with your to-do list for the week. Nothing is sent automatically — agent drafts, you review, you send.</span>
+<span style="color:#6b7280">Monitors follow-ups on applications and outreach. Generates a Monday brief with my to-do list for the week. Nothing is sent automatically. The agent drafts, I review, I send.</span>
 </td>
 </tr>
 </table>
 """, unsafe_allow_html=True)
-except Exception:
-    pass
 
 _stat_hidden_j  = st.session_state.get("hidden_job_ids", set())
 _stat_hidden_cn = st.session_state.get("hidden_company_names", set())
-
 _stat_hidden_ci = st.session_state.get("hidden_company_ids", set())
 
 open_count     = sum(1 for j in jobs if j.get("status") in ["prep_ready", "borderline", "new"] and j.get("id") not in _stat_hidden_j)
@@ -273,10 +276,12 @@ radar_count = sum(
 
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("📂 Open Roles", open_count)
-c2.metric("📋 Pipeline", pipeline_count)
-c3.metric("📧 Reached Out", ro_count)
-c4.metric("✅ Applied", applied_count)
-c5.metric("🔭 On Radar", radar_count)
+c2.metric("🔭 On Radar", radar_count)
+c3.metric("📋 Pipeline", pipeline_count)
+c4.metric("📧 Reached Out", ro_count)
+c5.metric("✅ Applied", applied_count)
+
+st.markdown(f"**This week: {_new_jobs_wk} new roles · {_new_radar} new companies on radar.**")
 
 st.divider()
 
@@ -1115,5 +1120,6 @@ Rules:
 Return ONLY the message."""}]
                             ).content[0].text.strip()
                             supabase.table("companies").update({"relationship_message": _gen}).eq("id", item["id"]).execute()
-                            st.cache_data.clear()
                         st.toast(f"Draft generated for {company}")
+                        st.cache_data.clear()
+                        st.rerun()
