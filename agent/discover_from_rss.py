@@ -829,6 +829,55 @@ def process_company(
 # Main RSS scan
 # ---------------------------------------------------------------------------
 
+def extract_companies_from_rss() -> list:
+    """
+    Discovery-only RSS scan: extract company names, add to DB with basic info.
+    Does NOT score, route, or generate outreach — pipeline handles that separately.
+    Returns list of newly added company names.
+    """
+    seen = load_seen()
+    new_companies: list = []
+
+    for feed in RSS_FEEDS:
+        items = parse_feed(feed["url"])
+        for item in items:
+            url = item["link"]
+            title = item["title"]
+            if url in seen:
+                continue
+            if feed["type"] == "funding_news":
+                funding_keywords = ["raises", "raised", "funding", "series", "seed", "million"]
+                if not any(kw in title.lower() for kw in funding_keywords):
+                    seen.add(url)
+                    continue
+            content = item["content"]
+            if len(content) < 200:
+                content = fetch_article_text(url)
+            companies = extract_companies_from_post(title, content, feed["type"])
+            if not companies:
+                seen.add(url)
+                continue
+            funding_info = extract_funding_info(title, content) if feed["type"] == "funding_news" else ""
+            for company in companies:
+                added = save_to_companies(
+                    company_name=company,
+                    ashby_slug=None,
+                    greenhouse_slug=None,
+                    source=feed["name"],
+                    source_url=url,
+                    funding_info=funding_info,
+                    what_they_do="",
+                    relationship_message="",
+                    attention_score=None,
+                )
+                if added:
+                    new_companies.append(company)
+            seen.add(url)
+
+    save_seen(seen)
+    return new_companies
+
+
 def run_rss_scan():
     print("\n=== RSS Funding Scan ===")
     seen = load_seen()
