@@ -342,22 +342,17 @@ if nav == "📡 Sources":
                 st.error(result["error"])
                 st.info("Try pasting the post text directly in the box above.")
             else:
-                added = result["added_ashby"] + result["added_greenhouse"]
-
+                newly_added = result["added_ashby"] + result["added_greenhouse"] + result.get("added_to_radar", [])
                 col_a, col_b, col_c = st.columns(3)
                 with col_a:
-                    st.markdown("**Added to polling**")
-                    if added:
-                        for c in added:
+                    st.markdown("**Added to tracking**")
+                    if newly_added:
+                        for c in newly_added:
                             st.markdown(f"- {c}")
                     else:
                         st.caption("None new")
                 with col_b:
-                    if result.get("added_to_radar"):
-                        st.markdown("**Added to radar**")
-                        for c in result["added_to_radar"]:
-                            st.markdown(f"- {c}")
-                    elif result["no_ats_found"]:
+                    if result.get("no_ats_found"):
                         st.markdown("**No job board found**")
                         for c in result["no_ats_found"]:
                             st.markdown(f"- {c}")
@@ -367,22 +362,8 @@ if nav == "📡 Sources":
                         for c in result["already_known"]:
                             st.markdown(f"- {c}")
 
-                if added:
-                    with st.spinner(f"Checking jobs at {', '.join(added)}..."):
-                        from agent.discover import poll_specific_companies
-                        new_jobs_found = poll_specific_companies(
-                            ashby_slugs=list(result.get("added_ashby_slugs", {}).keys()),
-                            greenhouse_slugs=list(result.get("added_greenhouse_slugs", {}).keys()),
-                        )
-                    if new_jobs_found:
-                        by_co = {}
-                        for j in new_jobs_found:
-                            by_co.setdefault(j["company"], []).append(j["title"])
-                        st.success(f"{len(new_jobs_found)} new job(s) added to Open Roles:")
-                        for co, titles in by_co.items():
-                            st.markdown(f"- **{co}**: {', '.join(titles)}")
-                    else:
-                        st.info(f"{', '.join(added)} added. No matching roles right now.")
+                if newly_added:
+                    st.session_state["pipeline_queue"] = newly_added
                     st.cache_data.clear()
 
     st.divider()
@@ -392,10 +373,13 @@ if nav == "📡 Sources":
         with st.spinner("Scanning Next Play and TechCrunch..."):
             from agent.discover_from_rss import run_rss_scan
             result = run_rss_scan()
+        new_cos = result.get("new_companies", [])
         st.success(
             f"Done. {result['roles_found']} new role(s) in Open Roles "
             f"· {result['radar_added']} companies added to Radar."
         )
+        if new_cos:
+            st.session_state["pipeline_queue"] = new_cos
         st.cache_data.clear()
 
     st.divider()
@@ -428,11 +412,75 @@ if nav == "📡 Sources":
                 except Exception as e:
                     results.append(f"**{co['name']}**: error ({e})")
                 prog.progress((i + 1) / len(unscored), text=f"Scored {i+1}/{len(unscored)}")
+            scored_names = [co["name"] for co in unscored]
             st.success(f"Done. {len(unscored)} companies scored:")
             for r in results:
                 st.markdown(f"- {r}")
+            st.session_state["pipeline_queue"] = scored_names
             st.cache_data.clear()
             st.rerun()
+
+    # ── Pipeline runner ──────────────────────────────────────────────────────
+    _queue = st.session_state.get("pipeline_queue", [])
+    _total_cos = len(company_lookup) or 70
+    if _queue:
+        st.divider()
+        st.markdown(f"#### Run full pipeline")
+        st.caption(
+            f"Score each company, check for open roles, route to Open Roles or On Radar "
+            f"with outreach drafts."
+        )
+        _pc1, _pc2 = st.columns(2)
+        with _pc1:
+            _run_targeted = st.button(
+                f"🎯 Run for these {len(_queue)} companies",
+                type="primary",
+                key="run_pipeline_targeted",
+            )
+        with _pc2:
+            _run_all = st.button(
+                f"🔄 Run for all {_total_cos}+ companies in DB",
+                key="run_pipeline_all",
+            )
+
+        if _run_targeted or _run_all:
+            _names = (
+                _queue if _run_targeted
+                else [r["name"] for r in supabase.table("companies").select("name").execute().data or []]
+            )
+            _label = f"these {len(_names)} companies" if _run_targeted else f"all {len(_names)} companies"
+            with st.spinner(f"Running full pipeline for {_label}..."):
+                from agent.pipeline import run_pipeline_for_companies
+                _res = run_pipeline_for_companies(_names)
+
+            st.session_state.pop("pipeline_queue", None)
+            st.cache_data.clear()
+
+            _open = _res["open_roles"]
+            _radar = _res["radar_added"]
+            _skip = _res["skipped"]
+
+            if _open or _radar:
+                st.success(
+                    f"Pipeline complete: "
+                    f"{len(_open)} role(s) → Open Roles · "
+                    f"{len(_radar)} company/companies → On Radar with drafts"
+                )
+                if _open:
+                    st.markdown("**Open Roles found:**")
+                    _by_co: dict = {}
+                    for r in _open:
+                        _by_co.setdefault(r["company"], []).append(r["title"])
+                    for co_name, titles in _by_co.items():
+                        st.markdown(f"- **{co_name}**: {', '.join(titles)}")
+                if _radar:
+                    st.markdown("**Added to On Radar with outreach drafts:**")
+                    for r in _radar:
+                        st.markdown(f"- **{r['company']}** ({r['score']}/100)")
+                if _skip:
+                    st.caption(f"Skipped (low score): {', '.join(r['company'] for r in _skip)}")
+            else:
+                st.info("Pipeline ran. No new roles or radar companies found.")
 
     st.divider()
     st.markdown("#### Connected systems")

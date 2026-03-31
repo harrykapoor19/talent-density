@@ -834,6 +834,7 @@ def run_rss_scan():
     seen = load_seen()
     total_roles = 0
     total_radar = 0
+    new_companies: list = []
 
     for feed in RSS_FEEDS:
         print(f"\n--- {feed['name']} ---")
@@ -879,14 +880,16 @@ def run_rss_scan():
                 )
                 if result == "roles_found":
                     total_roles += 1
+                    new_companies.append(company)
                 elif result == "added_to_radar":
                     total_radar += 1
+                    new_companies.append(company)
 
             seen.add(url)
 
     save_seen(seen)
     print(f"\nDone. {total_roles} new roles in Open Roles. {total_radar} companies added to Radar.")
-    return {"roles_found": total_roles, "radar_added": total_radar}
+    return {"roles_found": total_roles, "radar_added": total_radar, "new_companies": new_companies}
 
 
 if __name__ == "__main__":
