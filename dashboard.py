@@ -319,7 +319,13 @@ def _render_pipeline_runner(source_key: str):
             st.session_state.pop("pipeline_source", None)
             st.rerun()
     elif _queue:
-        st.info(f"Added to database: **{', '.join(_queue)}**")
+        _already = st.session_state.get("pipeline_already_tracked", [])
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown(f"**Added to dashboard:** {', '.join(_queue)}")
+        with col_b:
+            if _already:
+                st.markdown(f"**Already tracked:** {', '.join(_already)}")
         _pc1, _pc2 = st.columns([3, 1])
         with _pc1:
             _run_targeted = st.button(
@@ -330,12 +336,14 @@ def _render_pipeline_runner(source_key: str):
             if st.button("✕ Cancel", key=f"pipeline_cancel_{source_key}"):
                 st.session_state.pop("pipeline_queue", None)
                 st.session_state.pop("pipeline_source", None)
+                st.session_state.pop("pipeline_already_tracked", None)
                 st.rerun()
         if _run_targeted:
             with st.spinner(f"Running workflow for {len(_queue)} companies..."):
                 from agent.pipeline import run_pipeline_for_companies
                 _res = run_pipeline_for_companies(_queue)
             st.session_state.pop("pipeline_queue", None)
+            st.session_state.pop("pipeline_already_tracked", None)
             st.session_state["pipeline_result"] = _res
             st.cache_data.clear()
             st.rerun()
@@ -389,14 +397,7 @@ if nav == "📡 Sources":
     # Show result from the global refresh button (🔄 in nav bar)
     _render_pipeline_runner("global_refresh")
 
-    st.markdown("#### Add from post URL")
-    post_url = st.text_input(
-        "Paste a LinkedIn or Twitter/X post URL",
-        placeholder="https://www.linkedin.com/posts/... or https://x.com/...",
-    )
-
-    st.markdown("#### Or paste post text directly")
-    st.caption("Use this if LinkedIn blocks the URL fetch (it often does).")
+    st.markdown("#### Add from post text")
     post_text = st.text_area(
         "Paste the post text here",
         height=150,
@@ -404,12 +405,12 @@ if nav == "📡 Sources":
     )
 
     if st.button("🔍 Extract and add companies", type="primary"):
-        if not post_url and not post_text.strip():
-            st.warning("Paste a URL or some post text first.")
+        if not post_text.strip():
+            st.warning("Paste a LinkedIn post or company names first.")
         else:
             with st.spinner("Extracting company names..."):
                 from agent.discover_from_post import process_post
-                result = process_post(url=post_url or None, text=post_text.strip() or None)
+                result = process_post(text=post_text.strip())
 
             if result.get("error"):
                 st.error(result["error"])
@@ -441,6 +442,8 @@ if nav == "📡 Sources":
                     if newly_added:
                         st.session_state["pipeline_queue"] = newly_added
                         st.session_state["pipeline_source"] = "post"
+                        st.session_state["pipeline_already_tracked"] = already_tracked
+                        st.session_state.pop("pipeline_result", None)
                         st.cache_data.clear()
                         st.rerun()
 
@@ -454,9 +457,10 @@ if nav == "📡 Sources":
             from agent.discover_from_rss import extract_companies_from_rss
             _rss_new = extract_companies_from_rss()
         if _rss_new:
-            st.success(f"Found {len(_rss_new)} new companies: {', '.join(_rss_new)}")
             st.session_state["pipeline_queue"] = _rss_new
             st.session_state["pipeline_source"] = "rss"
+            st.session_state.pop("pipeline_result", None)
+            st.session_state.pop("pipeline_already_tracked", None)
             st.cache_data.clear()
             st.rerun()
         else:
