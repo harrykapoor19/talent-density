@@ -128,7 +128,6 @@ export default function OpenRoles() {
           <option>All time</option>
           <option>This week</option>
         </select>
-        <button onClick={fetchJobs} className="btn-secondary">Refresh</button>
       </div>
 
       {/* Count line */}
