@@ -478,6 +478,7 @@ if nav == "📡 Sources":
 <b>Ashby</b> · 30+ verified company slugs<br>
 <b>Greenhouse</b> · 10+ verified company slugs<br>
 <b>Work at a Startup</b> · YC company list via Apify<br>
+<b>LinkedIn</b> · job board monitored via Apify<br>
 <span style="color:#6b7280; font-size:0.85em">Polled every Monday 9am PT</span>
 </div>
 
