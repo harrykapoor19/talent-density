@@ -469,35 +469,110 @@ if nav == "📡 Sources":
     _render_pipeline_runner("rss")
 
     st.divider()
-    st.markdown("#### Companies I want to track")
-    st.caption("Companies you know are a good fit. Added directly to database and checked for open roles — no score gate.")
-    _manual_input = st.text_input("Company name(s)", placeholder="e.g. Granola, Notion, Runway", key="manual_company_input")
-    if st.button("➕ Add and check for roles", type="primary", key="manual_add_btn"):
+    st.markdown("#### Add anything")
+    st.caption("Company names → added to database, checked for roles, routed to Open Roles or Radar. Job links → extracted and added directly to Open Roles. Mix and match.")
+    _manual_input = st.text_area(
+        "Company names or job links",
+        placeholder="Granola\nNotion AI\nhttps://jobs.ashby.com/somecompany/senior-pm\nhttps://greenhouse.io/...",
+        height=120,
+        key="manual_company_input",
+    )
+    if st.button("➕ Add to dashboard", type="primary", key="manual_add_btn"):
         if not _manual_input.strip():
-            st.warning("Enter at least one company name.")
+            st.warning("Enter at least one company name or job link.")
         else:
-            with st.spinner("Adding..."):
-                from agent.discover_from_post import process_post
-                _manual_result = process_post(text=_manual_input.strip())
-            _manual_added = _manual_result.get("added", [])
-            _manual_existing = _manual_result.get("already_known", [])
-            if _manual_added:
+            import re as _re
+            _lines = [l.strip() for l in _re.split(r"[\n,]+", _manual_input) if l.strip()]
+            _urls = [l for l in _lines if l.startswith("http")]
+            _names = [l for l in _lines if not l.startswith("http")]
+
+            _jobs_added = []
+            _jobs_failed = []
+
+            # ── Handle job URLs ───────────────────────────────────────────
+            for _jurl in _urls:
+                try:
+                    import httpx as _httpx
+                    import anthropic as _anthropic
+                    _r = _httpx.get(_jurl, headers={"User-Agent": "Mozilla/5.0"}, follow_redirects=True, timeout=10)
+                    _html = _r.text
+                    _html = _re.sub(r"<(script|style)[^>]*>.*?</(script|style)>", " ", _html, flags=_re.DOTALL | _re.IGNORECASE)
+                    _page_text = _re.sub(r"<[^>]+>", " ", _html)
+                    _page_text = _re.sub(r"\s+", " ", _page_text).strip()[:6000]
+
+                    _ai = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                    _msg = _ai.messages.create(
+                        model="claude-haiku-4-5-20251001",
+                        max_tokens=300,
+                        messages=[{"role": "user", "content": f"""Extract job info from this page. Return ONLY valid JSON, no markdown:
+{{"company": "<company name>", "title": "<job title>", "summary": "<2-3 sentence job description summary>"}}
+
+PAGE:
+{_page_text}"""}],
+                    )
+                    _job_info = json.loads(_msg.content[0].text.strip())
+                    _co_name = _job_info.get("company", "Unknown")
+                    _title = _job_info.get("title", "Unknown Role")
+                    _summary = _job_info.get("summary", "")
+
+                    # Ensure company exists in companies table
+                    _co_res = supabase.table("companies").select("id").ilike("name", _co_name).execute()
+                    if not _co_res.data:
+                        supabase.table("companies").insert({"name": _co_name, "source": "manual", "attention_score": 80}).execute()
+                    _co_id_res = supabase.table("companies").select("id").ilike("name", _co_name).execute()
+                    _co_id = _co_id_res.data[0]["id"] if _co_id_res.data else None
+
+                    supabase.table("jobs").insert({
+                        "company_name": _co_name,
+                        "company_id": _co_id,
+                        "title": _title,
+                        "url": _jurl,
+                        "jd_text": _summary,
+                        "source": "manual",
+                        "attractiveness_score": 80,
+                        "status": "new",
+                        "seniority_pass": True,
+                        "no_list_pass": True,
+                    }).execute()
+                    _jobs_added.append(f"{_co_name} — {_title}")
+                except Exception as _e:
+                    _jobs_failed.append(_jurl)
+
+            # ── Handle company names ──────────────────────────────────────
+            _manual_added = []
+            _manual_existing = []
+            if _names:
+                with st.spinner("Processing company names..."):
+                    from agent.discover_from_post import process_post
+                    _manual_result = process_post(text=", ".join(_names))
+                _manual_added = _manual_result.get("added", [])
+                _manual_existing = _manual_result.get("already_known", [])
                 for _co_name in _manual_added:
                     try:
                         supabase.table("companies").update({"attention_score": 80}).eq("name", _co_name).execute()
                     except Exception:
                         pass
+
+            # ── Show feedback ─────────────────────────────────────────────
+            for _j in _jobs_added:
+                st.success(f"Job added to Open Roles: **{_j}**")
+            for _j in _jobs_failed:
+                st.error(f"Could not parse job link: {_j}")
+            if _manual_existing:
+                st.info(f"Already tracked: {', '.join(_manual_existing)}")
+
+            if _manual_added:
                 st.session_state["pipeline_queue"] = _manual_added
                 st.session_state["pipeline_source"] = "manual"
                 st.session_state["pipeline_already_tracked"] = _manual_existing
                 st.session_state.pop("pipeline_result", None)
                 st.cache_data.clear()
                 st.rerun()
-            else:
-                if _manual_existing:
-                    st.info(f"Already tracked: {', '.join(_manual_existing)}")
-                else:
-                    st.warning("No company names recognised.")
+            elif _jobs_added:
+                st.cache_data.clear()
+                st.rerun()
+            elif not _manual_existing and not _jobs_failed:
+                st.warning("Nothing recognised — try a company name or a full job URL.")
 
     _render_pipeline_runner("manual")
 
