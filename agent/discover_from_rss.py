@@ -583,8 +583,8 @@ Score this company 0-100 for "attention worthiness":
 - 40-59: Tangential fit. Skip.
 - 0-39: Not a fit. Drop.
 
-Be strict. Dev Infra / Coding AI, cybersecurity, health AI, and pure infra score below 35.
-Only score above 60 if there is a genuine match with her background and target domains.
+Good fits (score 60+): AI agents, voice AI, vertical AI SaaS, enterprise AI (meeting intelligence, productivity, knowledge management), fintech, B2B automation, revenue intelligence, customer success AI.
+Bad fits (score below 35): pure dev infra, coding assistants, cybersecurity, health AI, defense, climate tech, pure infra/cloud.
 Use your own knowledge of this company (you likely know it) — don't rely only on the context above.
 
 Also:
