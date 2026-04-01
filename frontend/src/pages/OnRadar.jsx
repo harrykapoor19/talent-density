@@ -292,7 +292,12 @@ export default function OnRadar() {
           <option>Medium (60-79)</option>
           <option>Low (&lt;60)</option>
         </select>
-        <span className="text-sm text-gray-400">{filtered.length} companies</span>
+      </div>
+
+      {/* Count line */}
+      <div className="text-sm text-gray-400">
+        {filtered.length} {filtered.length === 1 ? 'company' : 'companies'}
+        {(() => { const n = filtered.filter(c => c._isNew).length; return n > 0 ? <span className="ml-2 text-emerald-600 font-medium">· {n} new this week</span> : null })()}
       </div>
 
       {loading ? (

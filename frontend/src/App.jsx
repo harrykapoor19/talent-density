@@ -158,13 +158,7 @@ export default function App() {
             <NavTab to="/sources">Sources</NavTab>
           </nav>
 
-          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-            {counts.open > 0 && <StatPill label="open" value={counts.open} color="bg-emerald-50 text-emerald-700" />}
-            {counts.radar > 0 && <StatPill label="radar" value={counts.radar} color="bg-purple-50 text-purple-700" />}
-            {counts.pipeline > 0 && <StatPill label="pipeline" value={counts.pipeline} color="bg-brand-50 text-brand-700" />}
-            {counts.reachedOut > 0 && <StatPill label="out" value={counts.reachedOut} color="bg-amber-50 text-amber-700" />}
-            {counts.applied > 0 && <StatPill label="applied" value={counts.applied} color="bg-blue-50 text-blue-700" />}
-          </div>
+          <div className="shrink-0" />
         </div>
         {(thisWeek.jobs > 0 || thisWeek.companies > 0) && (
           <div className="max-w-7xl mx-auto px-4 pb-2">
