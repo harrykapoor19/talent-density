@@ -238,7 +238,7 @@ st.markdown(f"""
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">🏢 → 🔍</div>
 <strong>Discovers companies automatically</strong><br>
-<span style="color:#6b7280">Every Monday, I poll all {_total_cos}+ tracked company job boards (Ashby, Greenhouse) for open roles. The agent also scans funding news, LinkedIn hiring posts, and newsletters to find new AI-native companies worth adding.</span>
+<span style="color:#6b7280">Every Monday, I poll all tracked company job boards for open roles. The agent also scans funding news, LinkedIn job board and hiring posts, and newsletters to discover new AI-native companies.</span>
 </td>
 <td style="padding:10px 14px; vertical-align:top; width:25%">
 <div style="font-size:1.4em">🤖 → 📊</div>
@@ -544,19 +544,24 @@ if nav == "📡 Sources":
                     _co_id_res = supabase.table("companies").select("id").ilike("name", _co_name).execute()
                     _co_id = _co_id_res.data[0]["id"] if _co_id_res.data else None
 
-                    supabase.table("jobs").insert({
-                        "company_name": _co_name,
-                        "company_id": _co_id,
-                        "title": _title,
-                        "url": _jurl,
-                        "jd_text": _summary,
-                        "source": "manual",
-                        "attractiveness_score": 80,
-                        "status": "new",
-                        "seniority_pass": True,
-                        "no_list_pass": True,
-                    }).execute()
-                    _jobs_added.append(f"{_co_name} — {_title}")
+                    # Skip if this URL already exists
+                    _existing_job = supabase.table("jobs").select("id").eq("url", _jurl).execute()
+                    if _existing_job.data:
+                        _jobs_added.append(f"{_co_name} — {_title} (already in Open Roles)")
+                    else:
+                        supabase.table("jobs").insert({
+                            "company_name": _co_name,
+                            "company_id": _co_id,
+                            "title": _title,
+                            "url": _jurl,
+                            "jd_text": _summary,
+                            "source": "manual",
+                            "attractiveness_score": 80,
+                            "status": "new",
+                            "seniority_pass": True,
+                            "no_list_pass": True,
+                        }).execute()
+                        _jobs_added.append(f"{_co_name} — {_title}")
                 except Exception as _e:
                     _jobs_failed.append(_jurl)
 
