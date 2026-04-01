@@ -383,6 +383,10 @@ DIST = ROOT / "frontend" / "dist"
 if DIST.exists():
     app.mount("/assets", StaticFiles(directory=str(DIST / "assets")), name="static")
 
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(str(DIST / "index.html"))
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve React SPA — all non-API routes return index.html."""
