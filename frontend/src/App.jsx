@@ -33,23 +33,23 @@ function NavTab({ to, children, end }) {
 const HOW_CARDS = [
   {
     icon: Search,
-    title: 'Discovers companies automatically',
-    body: 'Every Monday, I pull open roles from Ashby and Greenhouse across 100+ tracked companies. The agent also scans funding news, LinkedIn hiring posts, and newsletters to surface new AI-native companies.',
+    title: 'Maps where talent density is highest',
+    body: 'Tracks 100+ companies weekly — scoring each on AI-native DNA, funding velocity, and team signals. The agent surfaces companies where exceptional builders concentrate, so your attention goes to the right places.',
   },
   {
     icon: BarChart3,
-    title: 'Scores every role with Claude',
-    body: 'A keyword pre-filter runs first at zero LLM cost: roles below 30/100 are dropped. The rest are scored on 5 dimensions with Claude Sonnet: role fit (30%), company fit (25%), end-user layer (20%), growth signal (15%), location (10%).',
+    title: 'Finds your peer-contact, not the CEO',
+    body: 'A 6-factor model identifies who will actually respond: role relevance (25%), inbox accessibility (25%), growth mindset (20%), recent joiner status (15%). The target archetype: a PM Lead with 900 followers who joined 10 months ago.',
   },
   {
     icon: FolderKanban,
-    title: 'Routes to Open Roles or On Radar',
-    body: 'Roles scoring 75+ go to Open Roles; 55-74 land in Borderline. Companies with no open PM roles go to On Radar. Every radar company gets a drafted outreach in my voice.',
+    title: 'Catches the 10-minute engagement window',
+    body: 'Every tracked person is monitored every 20 minutes. When they post, an alert fires immediately with a pre-drafted peer reply. First 10 minutes after a post = 3× more visibility. The agent catches the window; you decide whether to use it.',
   },
   {
     icon: CheckCircle,
-    title: 'Tracks everything, drafts everything',
-    body: 'Tracks application status, outreach, and follow-ups across all stages. Nothing is sent automatically. The agent drafts, I review, I send.',
+    title: 'Builds credibility, not desperation',
+    body: 'Every draft is reviewed before it goes — nothing automatic. Each engagement is peer-to-peer: specific, not flattery, never job-seeker language. Over time, you become a known name before any role opens. The opportunity follows the relationship.',
   },
 ]
 
@@ -63,7 +63,7 @@ function HowItWorksPanel({ open, onClose }) {
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-surface-primary/80 backdrop-blur-md border-b border-border-subtle px-5 py-3 flex items-center justify-between z-10">
-          <h2 className="text-title text-fg">How this agent works</h2>
+          <h2 className="text-title text-fg">How Talent Density works</h2>
           <button onClick={onClose} className="p-1.5 rounded-md hover:bg-surface-active transition-colors text-fg-muted hover:text-fg">
             <X size={16} />
           </button>

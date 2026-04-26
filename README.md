@@ -1,6 +1,8 @@
-# Job Agent
+# Talent Density
 
-An autonomous job search system powered by Claude. Discovers companies, scores roles, predicts what each company is building next, builds a target pipeline, finds the right person to reach out to, and tracks them on Twitter — so you reply at the right moment.
+The best opportunities don't come from job boards. They come from people who already trust you. Talent Density is an intelligence layer for finding, tracking, and genuinely engaging the people who matter — before you need anything from them.
+
+The core loop: map where exceptional people concentrate → identify the right peer-contact → catch the moment they post → reply as a builder, not a job seeker → stay in the loop continuously.
 
 Originally a CLI + Streamlit project. Now a full multi-user web app (React + FastAPI + Supabase) with auth, ready for public launch.
 
@@ -10,30 +12,31 @@ Originally a CLI + Streamlit project. Now a full multi-user web app (React + Fas
 
 ### Web app (React + FastAPI)
 
-7 tabs, all gated behind Supabase Auth:
+8 tabs, all gated behind Supabase Auth:
 
 | Tab | What it does |
 |---|---|
-| **Open Roles** | All jobs scoring 75+ for you. ATS analysis, prep materials, status tracking |
-| **On Radar** | Companies that don't have an open PM role yet but are worth watching. Auto-drafts an outreach in your voice |
-| **Pipeline** | Active applications — `prep_ready` → `applied` → `interviewing` → `offer` |
+| **Open Roles** | Roles scored 75+ at high-talent-density companies. ATS analysis, prep materials, status tracking |
+| **On Radar** | Companies worth watching that don't have an open role yet. Agent drafts a warm outreach in your voice |
+| **Pipeline** | Active conversations → `prep_ready` → `applied` → `interviewing` → `offer` |
 | **Outreach** | Everyone you've reached out to (people + companies). Follow-up nudges |
-| **Applied** | Closed loop tracking |
-| **Roadmap** | Enter a company name → predicts its 12-24M roadmap from every JD they've posted (product bets, team scaling, geo moves, tech signals, telling absences, next milestone) |
-| **Sources** | Add companies / job URLs in bulk, scan TechCrunch + Next Play funding news for new AI companies, paste LinkedIn posts to extract company names |
+| **Applied** | Closed-loop application tracking |
+| **Roadmap** | Enter a company → predicts its 12-24M product roadmap from every JD they've posted. Useful for outreach hooks and prep |
+| **Network** | Find your peer-contact at any company (6-factor scoring). Watch them on X — get alerted within 20 min of a post, with a pre-drafted reply |
+| **Sources** | Add companies, scan TechCrunch + Next Play funding news, paste LinkedIn posts to extract company names |
 
-### Discovery + scoring engine
+### Intelligence engine
 
 | Module | What it does |
 |---|---|
-| **Discover** | Polls Ashby, Greenhouse, Lever, Workable boards + LinkedIn job posts + web search |
+| **Discover** | Polls Ashby, Greenhouse, Lever, Workable boards + LinkedIn + web search for open roles |
 | **RSS scan** | TechCrunch + Next Play newsletter for fresh-funded AI companies |
-| **Score** | Two-stage: keyword pre-filter (free) → Claude Sonnet on 5 dimensions (role fit 30%, company fit 25%, end-user layer 20%, growth signal 15%, location 10%). Prompt-cached for cost |
-| **ATS** | Resume vs JD analysis — score, missing keywords, strongest bullets, top 3 rewrites, cover letter angles. Claude Haiku + cached resume |
-| **Prep** | Auto-generated outreach for prep-ready jobs in your voice |
-| **Roadmap predictor** | Reads every JD a company has posted, returns structured roadmap (thesis, product bets w/ confidence, team scaling pattern, tech signals, strategic priorities, risks, next milestone guess) |
-| **Network intelligence** | "Hidden gem" contact finder — 6-factor score for who'll actually reply |
-| **Twitter monitor** | Watchlist + macOS notification + reply draft when target tweets |
+| **Score** | Two-stage: keyword pre-filter (free) → Claude Sonnet on 5 dimensions. Prompt-cached for cost |
+| **Network intelligence** | Finds your peer-contact at any company — 6-factor score for who'll respond (not the CEO) |
+| **Twitter monitor** | Watchlist → Apify poll every 20 min → alert + pre-drafted reply within one polling cycle |
+| **Roadmap predictor** | Reads every JD a company has posted → structured 12-24M product thesis + team scaling pattern |
+| **ATS** | Resume vs JD gap analysis — missing keywords, rewrite suggestions, cover letter angles |
+| **Prep** | Auto-generated outreach for prep-ready roles, in your voice |
 | **Chat CLI** | Conversational control over everything (`python3 cli.py`) |
 
 ---
@@ -79,8 +82,8 @@ job-agent/
 ### 1. Clone & install
 
 ```bash
-git clone git@github.com:harrykapoor19/job-agent.git
-cd job-agent
+git clone git@github.com:harrykapoor19/talent-density.git
+cd talent-density
 pip3 install -r requirements.txt
 cd frontend && npm install && cd ..
 ```
@@ -128,7 +131,7 @@ Run both schema files against your Supabase project (SQL Editor):
 
 ### 4. Profile
 
-Edit `profile/harry.md` — work history, target roles, writing samples, tone. This drives outreach drafts and ATS analysis.
+Edit `profile/harry.md` — work history, target companies, writing samples, tone. This drives outreach drafts, reply generation, and ATS analysis.
 
 ---
 
@@ -146,7 +149,7 @@ uvicorn api.main:app --reload --port 8001
 cd frontend && npm run dev
 ```
 
-Open `http://localhost:3001` (or whatever Vite picks). Sign up with email — Supabase Auth + RLS isolates each user's data.
+Open `http://localhost:3001` (or whatever Vite picks). Sign up with email — Supabase Auth + RLS isolates each user's data completely.
 
 ### Chat CLI
 
@@ -157,12 +160,12 @@ python3 cli.py
 Examples:
 
 ```
-> add Stripe, Linear, Notion to my target list
-> who should I reach out to at Stripe?
+> add Cursor, Linear, Notion to my target list
+> who should I reach out to at Anthropic?
 > predict the roadmap for Cartesia
-> add @sama to my twitter watchlist
+> add @danluu to my twitter watchlist
 > what's my pipeline looking like?
-> brief me on Linear
+> brief me on Cursor
 ```
 
 Tools: `add_target_company`, `list_pipeline`, `brief_company`, `find_people`, `research_person`, `add_to_watchlist`, `check_watchlist`, `generate_outreach`.
@@ -185,44 +188,40 @@ macOS users: double-click `Start Scheduler.command` to run it as a background pr
 
 ## Key features in depth
 
-### Roadmap predictor
+### The 10-minute reply window
 
-`POST /api/roadmap/predict` — input: `{ company_name }`. Pulls every JD that company has posted from your DB, sends to Claude (Haiku 4.5 → Sonnet on rate-limit) with a structured prompt, returns:
+Replies in the first 10 minutes of a tweet get ~3× more engagement. The monitor:
 
-- **Thesis** — 2-3 sentence prediction citing specific roles
-- **Product bets** — 3-5 bets with confidence levels (high/medium/low) + JD evidence
-- **Team scaling** — function-by-function hiring pattern
-- **Geographic moves** — new markets / offices implied
-- **Tech signals** — bullets on stack, infra, architectural shifts
-- **Strategic priorities** — ranked priorities with reasoning
-- **Telling absences** — what they're NOT hiring for that you'd expect
-- **Next milestone guess** — concrete prediction (launch, funding, partnership)
+1. Polls your watchlist via Apify every 20 min
+2. Fires an alert the moment someone posts
+3. Generates a context-aware peer reply — specific, not flattery
+4. You review, you reply. Nothing goes automatically.
 
-Powers the **Roadmap** tab. Useful for prep-call research, competitive intel, and outreach hooks.
+### Peer-contact finder (6-factor scoring)
 
-### Network intelligence (6-factor scoring)
-
-When you ask "who should I reach out to at [company]?":
+The insight: NOT the CEO. The "hidden gem" — relevant team, low inbox load, growth mindset.
 
 | Factor | Weight | Signal |
 |---|---|---|
-| Role Relevance | 25% | Title alignment with your target role |
-| Low Inbox Load | 25% | Not a VP/Director — more likely to reply |
-| Growth Mindset | 20% | Posts about craft, learning, building |
-| Company Tenure | 15% | 1-3 years — invested but not entrenched |
-| Profile Match | 10% | Shared background / interests |
-| Network Distance | 5% | Mutual connections |
+| Role Relevance | 25% | Can they actually champion you internally? |
+| Low Inbox Load | 25% | Inverted fame metric — <5K followers scores highest |
+| Growth Mindset | 20% | Posts, engages strangers, shares learnings |
+| Company Tenure | 15% | Recent joiners (<12 months) are most network-hungry |
+| Profile Match | 10% | Shared background / sector overlap |
+| Network Distance | 5% | 2nd degree > cold |
 
-Goal: the rising star who'll actually reply, not the CEO who won't.
+### Roadmap predictor
 
-### Twitter monitor (10-minute reply window)
+Reads every JD a company has posted → returns structured prediction:
 
-Replies in the first 10 minutes of a tweet get ~50% more engagement. The monitor:
+- **Thesis** — 2-3 sentence product direction with JD evidence
+- **Product bets** — 3-5 bets with confidence levels
+- **Team scaling** — function-by-function hiring pattern
+- **Tech signals** — stack, infra, architectural shifts
+- **Telling absences** — what they're NOT hiring for
+- **Next milestone** — concrete prediction
 
-1. Polls your watchlist via Apify every 20 min
-2. Fires a macOS notification the moment someone tweets
-3. Generates a context-aware reply draft
-4. You reply — fast, warm, relevant
+Useful for outreach hooks ("I noticed you're building X…") and prep calls.
 
 ### Multi-user auth
 

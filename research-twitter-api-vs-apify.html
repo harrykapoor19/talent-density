@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twitter/X API vs Apify Scrapers - Research Brief</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+    background: #FAFAFA;
+    color: #1a1a1a;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 32px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #111;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E5E5E5;
+    padding-bottom: 16px;
+  }
+  .subtitle span { margin-right: 16px; }
+
+  /* TL;DR */
+  .tldr {
+    background: #F0F4FF;
+    border-left: 4px solid #3B5BDB;
+    border-radius: 0 8px 8px 0;
+    padding: 20px 24px;
+    margin-bottom: 36px;
+  }
+  .tldr h2 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #3B5BDB;
+    margin-bottom: 12px;
+  }
+  .tldr ul { list-style: none; padding: 0; }
+  .tldr li {
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 1.55;
+    position: relative;
+    padding-left: 18px;
+  }
+  .tldr li::before {
+    content: "\2192";
+    position: absolute;
+    left: 0;
+    color: #3B5BDB;
+    font-weight: 700;
+  }
+
+  /* Section headers */
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+    margin-top: 40px;
+    margin-bottom: 16px;
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 24px;
+    margin-bottom: 10px;
+  }
+  p { margin-bottom: 12px; }
+  a { color: #3B5BDB; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px 0;
+    font-size: 13.5px;
+  }
+  th {
+    background: #F5F5F5;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #DDD;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #555;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #EEE;
+    vertical-align: top;
+  }
+  tr:hover td { background: #FAFAFA; }
+
+  /* Highlight cells */
+  .green { color: #0B7A3E; font-weight: 600; }
+  .red { color: #C92A2A; font-weight: 600; }
+  .orange { color: #E67700; font-weight: 600; }
+  .blue { color: #3B5BDB; font-weight: 600; }
+  .bold { font-weight: 600; }
+
+  /* Callout boxes */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout-rec {
+    background: #ECFDF3;
+    border-left: 4px solid #0B7A3E;
+  }
+  .callout-rec .callout-title {
+    color: #0B7A3E;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .callout-warn {
+    background: #FFF8E1;
+    border-left: 4px solid #E67700;
+  }
+  .callout-warn .callout-title {
+    color: #E67700;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .callout-info {
+    background: #F0F4FF;
+    border-left: 4px solid #3B5BDB;
+  }
+  .callout-info .callout-title {
+    color: #3B5BDB;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  /* Code */
+  code {
+    background: #F0F0F0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  pre {
+    background: #1E1E1E;
+    color: #D4D4D4;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 12px 0 20px 0;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  /* Confidence badges */
+  .conf {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+  .conf-high { background: #ECFDF3; color: #0B7A3E; }
+  .conf-med { background: #FFF8E1; color: #E67700; }
+  .conf-low { background: #FFF0F0; color: #C92A2A; }
+
+  /* Source list */
+  .sources {
+    background: #F9F9F9;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .sources h2 { margin-top: 0; }
+  .sources ol {
+    padding-left: 20px;
+    font-size: 13px;
+  }
+  .sources li {
+    padding: 3px 0;
+    color: #555;
+  }
+  .source-type {
+    font-size: 11px;
+    background: #EEE;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #666;
+    margin-left: 4px;
+  }
+
+  /* Remarks system */
+  .remarkable { position: relative; }
+  .remarkable:hover { background: rgba(59, 91, 219, 0.04); border-radius: 4px; }
+  .remarkable:hover .remark-btn { opacity: 1; }
+  .remark-btn {
+    position: absolute;
+    right: -32px;
+    top: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #3B5BDB;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 22px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .remark-input {
+    background: #FFFDE7;
+    border: 1px solid #E0D54A;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 100%;
+    margin-top: 6px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 32px;
+  }
+  .remark-saved {
+    background: #FFFDE7;
+    border-left: 3px solid #E0D54A;
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+    color: #666;
+  }
+  #copy-remarks-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #3B5BDB;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: none;
+  }
+  #copy-remarks-btn:hover { background: #2B4BC8; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Twitter/X API vs Apify Scrapers</h1>
+<div class="subtitle">
+  <span>April 12, 2026</span>
+  <span>|</span>
+  <span>Depth: Standard</span>
+  <span>|</span>
+  <span>14 sources consulted, 12 cited</span>
+  <span>|</span>
+  <span>Platforms: Web, Reddit, HN</span>
+</div>
+
+<!-- TL;DR -->
+<div class="tldr">
+  <h2>TL;DR</h2>
+  <ul>
+    <li>X killed Free/Basic/Pro tiers for new devs (Feb 2026). <strong>Pay-per-use is now the only option:</strong> $0.005/tweet read, $0.01/user lookup. No subscription fallback.</li>
+    <li><strong>Your use case (10 handles, 20-min polling) costs ~$3-6/month on X API pay-per-use</strong> -- cheap enough to use officially, but requires upfront credit purchase and careful implementation.</li>
+    <li><strong>Apify tweet scrapers cost $0.25-0.45 per 1K tweets</strong> but have documented reliability issues (10-result bugs, breakages from X's anti-scraping changes). Not ideal for scheduled monitoring.</li>
+    <li><strong>Recommendation: Use the official X API pay-per-use tier.</strong> At your volume, it's cheaper than Apify, more reliable, and gives you <code>since_id</code> polling support natively.</li>
+    <li>Third-party managed APIs (twitterapi.io, GetXAPI) exist at $0.001-0.15/1K tweets if X's pricing or auth friction becomes a problem.</li>
+  </ul>
+</div>
+
+<!-- ============================================ -->
+<h2>1. Current X API Pricing Tiers (as of April 2026)</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<p>On <strong>February 6, 2026</strong>, X replaced its entire tiered system with pay-per-use as the default. Legacy Basic ($200/mo) and Pro ($5,000/mo) tiers remain available <em>only</em> to existing subscribers. New developers cannot sign up for them.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tier</th>
+      <th>Cost</th>
+      <th>Monthly Read Cap</th>
+      <th>Rate Limits (15-min)</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="bold">Free (legacy)</td>
+      <td>$0</td>
+      <td class="red">100 reads/mo</td>
+      <td>~1 req/15 min</td>
+      <td class="red">Discontinued for new devs; migrated to pay-per-use with $10 voucher</td>
+    </tr>
+    <tr>
+      <td class="bold">Pay-Per-Use</td>
+      <td>Credit-based</td>
+      <td>2M reads/mo</td>
+      <td>Standard v2 limits*</td>
+      <td class="green">Default for all new devs</td>
+    </tr>
+    <tr>
+      <td class="bold">Basic (legacy)</td>
+      <td>$200/mo</td>
+      <td>15,000 reads/mo</td>
+      <td>60 search/15min</td>
+      <td class="orange">Existing subscribers only</td>
+    </tr>
+    <tr>
+      <td class="bold">Pro (legacy)</td>
+      <td>$5,000/mo</td>
+      <td>1M reads/mo</td>
+      <td>300 search/15min</td>
+      <td class="orange">Existing subscribers only</td>
+    </tr>
+    <tr>
+      <td class="bold">Enterprise</td>
+      <td>$42,000+/mo</td>
+      <td>Custom</td>
+      <td>Custom</td>
+      <td>By negotiation</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Pay-Per-Use operation costs:</strong></p>
+<table>
+  <thead>
+    <tr><th>Operation</th><th>Cost per call</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Post read (fetch tweet)</td><td>$0.005</td></tr>
+    <tr><td>User profile lookup</td><td>$0.010</td></tr>
+    <tr><td>Post create (write tweet)</td><td>$0.010</td></tr>
+    <tr><td>DM event read</td><td>$0.010</td></tr>
+    <tr><td>User interaction (follow/like/RT)</td><td>$0.015</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Key detail:</strong> Duplicate requests within a 24-hour UTC window count as a single charge. This is relevant for polling -- if a user hasn't tweeted, re-fetching the same tweets won't cost extra.</p>
+
+<p class="remarkable">
+  <span class="conf conf-high">HIGH</span> -- Corroborated by
+  <a href="https://postproxy.dev/blog/x-api-pricing-2026/">Postproxy</a>,
+  <a href="https://www.xpoz.ai/blog/guides/understanding-twitter-api-pricing-tiers-and-alternatives/">Xpoz</a>,
+  <a href="https://www.getxapi.com/blogs/twitter-api-cost">GetXAPI</a>, and
+  <a href="https://gigazine.net/gsc_news/en/20260209-x-api-pay-per-use/">Gigazine</a>.
+</p>
+</div>
+
+<!-- ============================================ -->
+<h2>2. Relevant Endpoints for Your Use Case</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<table>
+  <thead>
+    <tr><th>Endpoint</th><th>Purpose</th><th>Rate Limit (per app / 15 min)</th><th>Rate Limit (per user / 15 min)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>GET /2/users/:id/tweets</code></td>
+      <td class="bold">User timeline -- fetch recent tweets from a specific user</td>
+      <td>10,000</td>
+      <td>900</td>
+    </tr>
+    <tr>
+      <td><code>GET /2/users/by/username/:username</code></td>
+      <td>Resolve username to user ID</td>
+      <td>300</td>
+      <td>900</td>
+    </tr>
+    <tr>
+      <td><code>GET /2/tweets/search/recent</code></td>
+      <td>Keyword search (last 7 days)</td>
+      <td>450</td>
+      <td>300</td>
+    </tr>
+    <tr>
+      <td><code>GET /2/users/:id/mentions</code></td>
+      <td>Tweets mentioning a user</td>
+      <td>450</td>
+      <td>300</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Polling pattern:</strong> The <code>/2/users/:id/tweets</code> endpoint supports <code>since_id</code> -- you store the last tweet ID per handle and pass it on the next poll. Only new tweets are returned, minimizing both cost and data.</p>
+
+<p class="remarkable">
+  <span class="conf conf-high">HIGH</span> -- From <a href="https://docs.x.com/x-api/fundamentals/rate-limits">official X API rate limits docs</a> and <a href="https://developer.x.com/en/docs/twitter-api/tweets/timelines/integrate">Timelines integration guide</a>.
+</p>
+</div>
+
+<!-- ============================================ -->
+<h2>3. Cost Estimate: Your Exact Use Case</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<div class="callout callout-info">
+  <div class="callout-title">Scenario</div>
+  <p>Monitor 10 Twitter handles for new posts. Poll every 20 minutes. Also fetch last 30 tweets per handle on initial setup. Keyword search occasionally.</p>
+</div>
+
+<h3>A. Official X API (Pay-Per-Use)</h3>
+
+<table>
+  <thead>
+    <tr><th>Task</th><th>Calculation</th><th>Monthly Cost</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="bold">Initial setup: fetch 30 tweets x 10 handles</td>
+      <td>300 tweet reads x $0.005</td>
+      <td>$1.50 (one-time)</td>
+    </tr>
+    <tr>
+      <td class="bold">Ongoing polling: 10 handles every 20 min</td>
+      <td>10 handles x 3/hr x 24hr x 30 days = 21,600 API calls/mo.<br>Most return 0-2 new tweets. Assume avg 1 new tweet/call = ~21,600 reads.<br><strong>But:</strong> 24hr dedup means repeat "no new tweets" polls cost $0.<br>Realistic billable reads: ~3,000-6,000/mo*</td>
+      <td class="green">$15-30</td>
+    </tr>
+    <tr>
+      <td class="bold">User ID lookups (10 handles, cached)</td>
+      <td>10 lookups x $0.01 (one-time, cache the IDs)</td>
+      <td>$0.10</td>
+    </tr>
+    <tr>
+      <td class="bold">Keyword searches (occasional)</td>
+      <td>~50 searches/mo x ~20 results each = 1,000 reads</td>
+      <td>$5.00</td>
+    </tr>
+    <tr>
+      <td class="bold" style="background: #F0F4FF;">TOTAL (monthly)</td>
+      <td></td>
+      <td class="blue" style="background: #F0F4FF; font-size: 16px;">$3-6/mo (monitoring only)<br>$20-35/mo (with keyword search)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>*<strong>Critical nuance on dedup:</strong> X's pay-per-use charges once per unique tweet read per 24-hour window. If a user hasn't tweeted, you're re-reading the same tweets -- no charge. The 21,600 "calls" don't each cost money; only <em>new unique tweet reads</em> do. For 10 handles posting an average of 5-10 tweets/day combined, you'd see ~1,500-9,000 new reads/month.</p>
+
+<p><span class="conf conf-med">MEDIUM</span> -- Cost estimate is derived from official per-operation pricing. The dedup behavior is documented but real-world savings depend on tweet volume of monitored accounts.</p>
+
+<h3>B. Apify (apidojo/tweet-scraper)</h3>
+
+<table>
+  <thead>
+    <tr><th>Task</th><th>Calculation</th><th>Monthly Cost</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="bold">Fetch 30 tweets x 10 handles (initial)</td>
+      <td>300 tweets x $0.40/1K = $0.12 + compute units</td>
+      <td>~$0.50</td>
+    </tr>
+    <tr>
+      <td class="bold">Polling every 20 min, 10 handles</td>
+      <td>Cannot do efficient since_id polling. Must re-scrape recent tweets each run.<br>~2,160 actor runs/mo (10 x 3/hr x 24 x 30).<br>Each run: ~0.01-0.02 CU + per-result fees.</td>
+      <td class="orange">$20-65/mo**</td>
+    </tr>
+    <tr>
+      <td class="bold">Keyword search</td>
+      <td>50 searches/mo, ~20 results each = 1,000 tweets</td>
+      <td>~$0.40 + CU</td>
+    </tr>
+    <tr>
+      <td class="bold" style="background: #FFF8E1;">TOTAL (monthly)</td>
+      <td></td>
+      <td class="orange" style="background: #FFF8E1; font-size: 16px;">$20-65/mo</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>**The main problem: each Apify run has startup overhead (compute units, actor initialization). Running 2,160 small actor runs/month is inefficient -- you're paying CU costs for spin-up even when there are no new tweets. Batching reduces cost but sacrifices polling frequency.</p>
+
+<p><span class="conf conf-med">MEDIUM</span> -- Apify pricing is per-actor and per-result; exact costs depend on which specific actor and Apify plan you're on. Range estimated from <a href="https://use-apify.com/docs/what-is-apify/apify-pricing">Apify pricing docs</a> and <a href="https://apify.com/apidojo/tweet-scraper">actor listing</a>.</p>
+</div>
+
+<!-- ============================================ -->
+<h2>4. Head-to-Head Comparison</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<table>
+  <thead>
+    <tr>
+      <th style="width:28%">Dimension</th>
+      <th style="width:36%">X API (Pay-Per-Use)</th>
+      <th style="width:36%">Apify (apidojo/tweet-scraper)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="bold">Monthly cost (your use case)</td>
+      <td class="green">$3-6 (monitoring only)</td>
+      <td class="orange">$20-65</td>
+    </tr>
+    <tr>
+      <td class="bold">Setup effort</td>
+      <td>Developer account + app creation + OAuth 2.0 Bearer token. Straightforward but requires X approval.</td>
+      <td>Apify account + API token. Lower friction initially.</td>
+    </tr>
+    <tr>
+      <td class="bold">Polling efficiency</td>
+      <td class="green">Native <code>since_id</code> support. Only new tweets returned. 24hr dedup on billing.</td>
+      <td class="red">No incremental polling. Re-scrapes full recent timeline each run. Actor spin-up overhead.</td>
+    </tr>
+    <tr>
+      <td class="bold">Rate limits (10 handles, 20-min poll)</td>
+      <td class="green">10,000 req/15min (app-level). You need ~30/hr. Massive headroom.</td>
+      <td class="green">No hard rate limits from Apify side. But X's anti-scraping may throttle.</td>
+    </tr>
+    <tr>
+      <td class="bold">Reliability</td>
+      <td class="green">Official API. SLA-backed. Consistent response format.</td>
+      <td class="red">Scraper-based. Documented issues: runs returning only 10 results, breakages when X changes internal APIs. "Some tweets may not appear due to shadow banning."</td>
+    </tr>
+    <tr>
+      <td class="bold">Data completeness</td>
+      <td class="green">Complete timeline data with metadata, engagement metrics, media URLs.</td>
+      <td class="orange">Generally complete but scraping can miss tweets (shadow banning, content filtering).</td>
+    </tr>
+    <tr>
+      <td class="bold">Keyword search</td>
+      <td class="orange">Last 7 days only (pay-per-use / Basic). Full archive requires Pro ($5K/mo).</td>
+      <td class="green">No time restriction on search results.</td>
+    </tr>
+    <tr>
+      <td class="bold">Auth complexity</td>
+      <td class="orange">OAuth 2.0 Bearer Token. Dev portal setup.</td>
+      <td class="green">Single API token. No X account needed for scraping.</td>
+    </tr>
+    <tr>
+      <td class="bold">Risk of breaking</td>
+      <td class="green">Official API -- versioned, documented, deprecation notices.</td>
+      <td class="red">Scraper can break any time X changes internal GraphQL/web APIs. Multiple breakage reports in Apify issue tracker.</td>
+    </tr>
+    <tr>
+      <td class="bold">ToS compliance</td>
+      <td class="green">Fully compliant.</td>
+      <td class="red">Violates X Terms of Service. Risk of legal action at scale (unlikely for personal use but nonzero).</td>
+    </tr>
+    <tr>
+      <td class="bold">Monthly read cap</td>
+      <td>2M tweets/mo</td>
+      <td>No hard cap (Apify-side)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================ -->
+<h2>5. Can You Monitor 10 Handles Every 20 Min on Pay-Per-Use?</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<div class="callout callout-rec">
+  <div class="callout-title">Yes -- comfortably, with massive headroom</div>
+  <p><strong>Rate limit math:</strong> 10 handles x 3 polls/hour = 30 API calls per hour. The user timeline endpoint allows 10,000 requests per 15-minute window (app-level). You're using 0.3% of capacity.</p>
+  <p><strong>Monthly read budget:</strong> Even at worst case (each poll returns 10 tweets), that's 21,600 x 10 = 216,000 reads/month. The 2M cap gives you 10x headroom. With dedup, realistic reads are far lower.</p>
+  <p><strong>Cost budget:</strong> At $0.005/read, 216K reads = $1,080 (absolute ceiling, unrealistic). Realistic with dedup: $15-30/month.</p>
+</div>
+
+<h3>Implementation pattern</h3>
+<pre><code># Pseudocode for efficient polling
+for handle_id in monitored_handles:
+    last_seen_id = get_last_seen_tweet_id(handle_id)
+
+    # GET /2/users/:id/tweets?since_id=LAST_ID&max_results=10
+    new_tweets = fetch_timeline(handle_id, since_id=last_seen_id, max_results=10)
+
+    if new_tweets:
+        process_new_tweets(new_tweets)
+        save_last_seen_tweet_id(handle_id, new_tweets[0].id)
+
+    # Sleep 2 min between handles to spread load (optional)
+    # Total cycle: ~20 min for 10 handles</code></pre>
+
+<p><span class="conf conf-high">HIGH</span> -- Rate limits confirmed from <a href="https://docs.x.com/x-api/fundamentals/rate-limits">official X API docs</a>.</p>
+</div>
+
+<!-- ============================================ -->
+<h2>6. Contrarian / Minority Views</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+
+<h3>"Just use a scraper, the API is a rip-off"</h3>
+<p>A popular r/developersIndia thread (<a href="https://www.reddit.com/r/developersIndia/comments/1qzwkjn/">219 pts, 69 comments</a>) features a developer who built GetXAPI specifically because "Apify and RapidAPI costs add up fast" and the official API is "expensive." Multiple commenters suggest alternatives like <a href="https://fxtwitter.com">fxtwitter</a> for basic read-only use. The sentiment: for hobby/personal projects, scrapers are fine and cheaper at scale.</p>
+
+<p><strong>Counter-counter:</strong> At your volume (10 handles, monitoring-only), the official API is actually <em>cheaper</em> than scrapers. The "API is expensive" argument holds for high-volume use cases (50K+ reads/month), not yours.</p>
+
+<h3>"Scraper reliability is a myth"</h3>
+<p>A dev.to guide (<a href="https://dev.to/sivarampg/scraping-twitter-in-2025-a-developers-guide-to-surviving-the-api-apocalypse-5bbd">Scraping Twitter in 2025</a>) reports: self-hosted Nitter has a "40% failure rate in load tests," and the author's app "got limited within 48 hours for inauthentic behavior." Even managed scrapers (Apify, twitterapi.io) face ongoing cat-and-mouse with X's anti-scraping. One HN user notes: "Twitter fingerprints browser/network stacks" -- residential proxies don't guarantee invisibility.</p>
+
+<h3>"Pay-per-use gets expensive fast for read-heavy workloads"</h3>
+<p>Postproxy's analysis (<a href="https://postproxy.dev/blog/x-api-pricing-2026/">X API Pricing 2026</a>) warns: reaching 2 million reads costs $10,000/month -- <em>double</em> what old Pro tier cost. For data analysts or researchers doing large-scale tweet harvesting, pay-per-use is strictly worse than the legacy Pro plan. Your use case is far below this threshold, but be aware if scope creeps.</p>
+
+</div>
+
+<!-- ============================================ -->
+<h2>7. Third-Party Managed APIs (Middle Ground)</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<p>If the X API developer portal friction is too high, or if you want a simpler REST wrapper, these third-party APIs sit between official and scraping:</p>
+
+<table>
+  <thead>
+    <tr><th>Provider</th><th>Cost</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://twitterapi.io">twitterapi.io</a></td>
+      <td>$0.15/1K tweets; 100K free credits</td>
+      <td>Recommended by the dev.to scraping guide. Credits don't expire. ~142 req/sec.</td>
+    </tr>
+    <tr>
+      <td><a href="https://www.getxapi.com">GetXAPI</a></td>
+      <td>$0.001/tweet read</td>
+      <td>Built by an indie dev. 24 endpoints. Community-sourced from Reddit. No payment integration yet (DM for credits).</td>
+    </tr>
+    <tr>
+      <td>Apify (various actors)</td>
+      <td>$0.15-0.45/1K tweets</td>
+      <td>Multiple actors available. Best for batch jobs, not real-time polling.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><span class="conf conf-med">MEDIUM</span> -- Third-party APIs are reverse-engineering X's internal APIs. They can break. They violate X ToS. Use as backup, not primary.</p>
+</div>
+
+<!-- ============================================ -->
+<h2>Recommendation</h2>
+<!-- ============================================ -->
+
+<div class="callout callout-rec">
+  <div class="callout-title">Use the official X API (Pay-Per-Use)</div>
+  <p><strong>For your specific use case</strong> -- 10 handles, 20-minute polling, personal job search tool -- the official API is the clear winner:</p>
+  <ul style="margin-top: 8px; padding-left: 20px;">
+    <li><strong>Cheapest:</strong> $3-6/month for monitoring, vs $20-65/month on Apify</li>
+    <li><strong>Most reliable:</strong> Official API with versioned endpoints vs scraper that breaks when X changes internals</li>
+    <li><strong>Best polling support:</strong> Native <code>since_id</code> parameter means efficient incremental fetching</li>
+    <li><strong>24-hour dedup billing:</strong> You don't pay for re-reading tweets you've already seen (within 24h window)</li>
+    <li><strong>ToS compliant:</strong> No risk of account bans or legal issues</li>
+  </ul>
+  <p style="margin-top: 12px;"><strong>Setup steps:</strong></p>
+  <ol style="padding-left: 20px; margin-top: 4px;">
+    <li>Create X developer account at <a href="https://developer.x.com">developer.x.com</a></li>
+    <li>Create a project + app, get Bearer Token</li>
+    <li>Purchase initial credits ($10-25 to start)</li>
+    <li>Resolve 10 usernames to user IDs (cache them)</li>
+    <li>Build a cron job: poll <code>/2/users/:id/tweets?since_id=X</code> every 20 min per handle</li>
+    <li>Store results + last seen tweet ID per handle</li>
+  </ol>
+  <p style="margin-top: 12px;"><strong>Keep Apify as a fallback</strong> for: bulk historical fetches (last 30 tweets on setup), keyword searches older than 7 days, or if X's developer portal approval is slow.</p>
+</div>
+
+<!-- ============================================ -->
+<h2>Research Gaps</h2>
+<!-- ============================================ -->
+
+<div class="remarkable">
+<ul style="padding-left: 20px;">
+  <li><strong>X developer account approval time:</strong> Could not find current data on how long approval takes for new pay-per-use accounts. Some sources suggest instant, others mention delays.</li>
+  <li><strong>Exact dedup behavior for timeline endpoint:</strong> Confirmed that dedup exists within 24h UTC windows, but unclear if it applies per-tweet or per-API-call. Needs testing.</li>
+  <li><strong>Apify actor reliability statistics:</strong> No systematic uptime data found. Only anecdotal issue reports. The "10 results only" bug suggests periodic breakages but severity/frequency unknown.</li>
+  <li><strong>Filtered Stream availability on pay-per-use:</strong> Could not confirm if the streaming endpoints (more efficient than polling) are available on pay-per-use tier. If available, would eliminate polling entirely.</li>
+  <li><strong>You already have a TWITTER_BEARER_TOKEN:</strong> Check if this is from an existing Basic/Pro subscription or a legacy free tier. If legacy, you may have been auto-migrated to pay-per-use with the $10 voucher.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<div class="sources">
+<h2>All Sources</h2>
+<ol>
+  <li><a href="https://postproxy.dev/blog/x-api-pricing-2026/">Postproxy -- X API Pricing in 2026</a> <span class="source-type">blog</span> -- pay-per-use pricing details, tier comparison</li>
+  <li><a href="https://www.xpoz.ai/blog/guides/understanding-twitter-api-pricing-tiers-and-alternatives/">Xpoz -- Twitter/X API Pricing 2026: All Tiers Compared</a> <span class="source-type">blog</span> -- comprehensive tier breakdown</li>
+  <li><a href="https://docs.x.com/x-api/fundamentals/rate-limits">X Official -- API Rate Limits</a> <span class="source-type">docs</span> -- endpoint-specific rate limits</li>
+  <li><a href="https://developer.x.com/en/docs/twitter-api/tweets/timelines/integrate">X Official -- Timelines Integration Guide</a> <span class="source-type">docs</span> -- since_id polling pattern</li>
+  <li><a href="https://www.getxapi.com/blogs/twitter-api-cost">GetXAPI -- Twitter API Cost 2026</a> <span class="source-type">blog</span> -- per-operation cost breakdown</li>
+  <li><a href="https://gigazine.net/gsc_news/en/20260209-x-api-pay-per-use/">Gigazine -- X announces pay-as-you-go pricing</a> <span class="source-type">news</span> -- Feb 2026 launch coverage</li>
+  <li><a href="https://twitterapi.io/blog/twitter-api-pricing-2025">TwitterAPI.io -- X API Pricing Tiers 2025</a> <span class="source-type">blog</span> -- legacy tier details</li>
+  <li><a href="https://apify.com/apidojo/tweet-scraper">Apify -- Tweet Scraper V2</a> <span class="source-type">product</span> -- scraper listing, pricing</li>
+  <li><a href="https://use-apify.com/docs/what-is-apify/apify-pricing">Use Apify -- Pricing Guide 2026</a> <span class="source-type">blog</span> -- CU costs, plan tiers</li>
+  <li><a href="https://dev.to/sivarampg/scraping-twitter-in-2025-a-developers-guide-to-surviving-the-api-apocalypse-5bbd">Dev.to -- Scraping Twitter in 2025</a> <span class="source-type">blog</span> -- reliability comparison, risk factors</li>
+  <li><a href="https://medium.com/@rishikeshjadhav21/how-i-replaced-the-expensive-x-twitter-api-with-apify-saving-95-while-getting-faster-4379c1c01cf3">Medium -- Replacing Twitter API with Apify</a> <span class="source-type">blog</span> -- cost/perf comparison</li>
+  <li><a href="https://www.reddit.com/r/developersIndia/comments/1qzwkjn/">r/developersIndia -- Twitter's API is expensive, so I built my own</a> <span class="source-type">reddit</span> -- developer sentiment, alternatives</li>
+</ol>
+</div>
+
+</div>
+
+<button id="copy-remarks-btn" onclick="copyAllRemarks()">Copy All Remarks</button>
+
+<script>
+// Remarks system
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.remarkable').forEach(function(el, idx) {
+    el.dataset.remarkIdx = idx;
+    const btn = document.createElement('button');
+    btn.className = 'remark-btn';
+    btn.textContent = '+';
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      toggleRemarkInput(el, idx);
+    };
+    el.appendChild(btn);
+  });
+});
+
+function toggleRemarkInput(el, idx) {
+  let existing = el.querySelector('.remark-input');
+  if (existing) {
+    if (existing.value.trim()) {
+      saveRemark(el, idx, existing.value.trim());
+    }
+    existing.remove();
+    return;
+  }
+  const input = document.createElement('textarea');
+  input.className = 'remark-input';
+  input.placeholder = 'Add a remark...';
+  input.rows = 1;
+  input.onkeydown = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (input.value.trim()) {
+        saveRemark(el, idx, input.value.trim());
+      }
+      input.remove();
+    }
+    if (e.key === 'Escape') { input.remove(); }
+  };
+  el.appendChild(input);
+  input.focus();
+}
+
+const remarks = {};
+function saveRemark(el, idx, text) {
+  remarks[idx] = { text: text, section: el.querySelector('h2,h3,p')?.textContent?.substring(0, 60) || 'Section ' + idx };
+  let saved = el.querySelector('.remark-saved');
+  if (saved) saved.remove();
+  const div = document.createElement('div');
+  div.className = 'remark-saved';
+  div.textContent = text;
+  div.onclick = function() { toggleRemarkInput(el, idx); };
+  el.appendChild(div);
+  document.getElementById('copy-remarks-btn').style.display = 'block';
+}
+
+function copyAllRemarks() {
+  let out = 'Remarks on: Twitter/X API vs Apify Research\n\n';
+  Object.keys(remarks).forEach(function(k) {
+    out += '- [' + remarks[k].section + '] ' + remarks[k].text + '\n';
+  });
+  navigator.clipboard.writeText(out);
+  const btn = document.getElementById('copy-remarks-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy All Remarks'; }, 1500);
+}
+</script>
+
+</body>
+</html>

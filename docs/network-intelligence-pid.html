@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Agent: Network Intelligence System — PID</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: #f9f9f7;
+      color: #1a1a1a;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 48px 100px;
+    }
+
+    /* Header */
+    .doc-header {
+      border-bottom: 2px solid #e8e8e4;
+      padding-bottom: 32px;
+      margin-bottom: 48px;
+    }
+    .doc-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+    .doc-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #0f0f0f;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .doc-subtitle {
+      font-size: 16px;
+      color: #555;
+      max-width: 600px;
+    }
+    .doc-meta {
+      display: flex;
+      gap: 28px;
+      margin-top: 20px;
+    }
+    .doc-meta span {
+      font-size: 12px;
+      color: #888;
+    }
+    .doc-meta strong {
+      color: #444;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 56px;
+      position: relative;
+    }
+    .section-number {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-size: 21px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+
+    /* Callout box */
+    .callout {
+      background: #fff;
+      border: 1px solid #e0e0d8;
+      border-left: 4px solid #111;
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout.insight {
+      border-left-color: #2563eb;
+      background: #f0f6ff;
+    }
+    .callout.warning {
+      border-left-color: #dc2626;
+      background: #fff5f5;
+    }
+    .callout.tip {
+      border-left-color: #16a34a;
+      background: #f0fdf4;
+    }
+    .callout-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    .callout p {
+      font-size: 14.5px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Framework grid */
+    .framework-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .framework-card {
+      background: #fff;
+      border: 1px solid #e8e8e4;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .framework-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .framework-card .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 100px;
+      background: #f0f0ec;
+      color: #666;
+    }
+    .framework-card .badge.high { background: #dcfce7; color: #15803d; }
+    .framework-card .badge.medium { background: #fef9c3; color: #a16207; }
+    .framework-card .badge.low { background: #fee2e2; color: #b91c1c; }
+    .framework-card p {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.55;
+    }
+    .framework-card .score-formula {
+      margin-top: 10px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #f5f5f2;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: #333;
+    }
+
+    /* Signal table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13.5px;
+    }
+    thead tr {
+      background: #f0f0ec;
+    }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #666;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0ec;
+      color: #333;
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafaf8; }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      margin: 1px;
+    }
+    .tag-green { background: #dcfce7; color: #15803d; }
+    .tag-red { background: #fee2e2; color: #b91c1c; }
+    .tag-yellow { background: #fef9c3; color: #a16207; }
+    .tag-blue { background: #dbeafe; color: #1d4ed8; }
+    .tag-gray { background: #f0f0ec; color: #555; }
+
+    /* Person archetype */
+    .archetype-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .archetype-card {
+      background: #fff;
+      border: 1px solid #e8e8e4;
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .archetype-card.bad { border-top: 3px solid #dc2626; }
+    .archetype-card.ok { border-top: 3px solid #f59e0b; }
+    .archetype-card.ideal { border-top: 3px solid #16a34a; }
+    .archetype-card .archetype-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .archetype-card.bad .archetype-label { color: #dc2626; }
+    .archetype-card.ok .archetype-label { color: #d97706; }
+    .archetype-card.ideal .archetype-label { color: #16a34a; }
+    .archetype-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+    .archetype-card ul {
+      list-style: none;
+      font-size: 12.5px;
+      color: #555;
+      line-height: 1.7;
+    }
+    .archetype-card ul li::before { content: "→ "; color: #aaa; }
+
+    /* Timeline / flow */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 24px 0;
+    }
+    .flow-step {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+    .flow-step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 17px;
+      top: 36px;
+      bottom: -12px;
+      width: 2px;
+      background: #e0e0d8;
+    }
+    .flow-num {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      background: #111;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .flow-body {
+      padding-bottom: 28px;
+      flex: 1;
+    }
+    .flow-body h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+    .flow-body p {
+      font-size: 13.5px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .flow-body code {
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #f0f0ec;
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: #333;
+    }
+
+    /* Scoring model */
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0ec;
+    }
+    .score-row:last-child { border-bottom: none; }
+    .score-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+      width: 200px;
+      min-width: 200px;
+    }
+    .score-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: #f0f0ec;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .score-bar {
+      height: 100%;
+      border-radius: 100px;
+      background: #111;
+    }
+    .score-weight {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      width: 36px;
+      text-align: right;
+    }
+    .score-note {
+      font-size: 12px;
+      color: #888;
+      width: 260px;
+    }
+
+    /* Module overview */
+    .module-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .module-card {
+      background: #fff;
+      border: 1px solid #e8e8e4;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .module-card h4 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 6px;
+    }
+    .module-card .module-file {
+      font-size: 11px;
+      font-family: 'SF Mono', monospace;
+      color: #888;
+      background: #f5f5f2;
+      padding: 2px 7px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .module-card p {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.55;
+    }
+
+    p { margin-bottom: 14px; }
+    ul, ol { padding-left: 20px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; font-size: 14px; color: #333; }
+    strong { color: #111; }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111;
+      margin: 28px 0 12px;
+    }
+
+    /* Remarks system */
+    .remark-anchor {
+      position: relative;
+      display: inline;
+    }
+    .remark-btn {
+      display: none;
+      position: absolute;
+      right: -28px;
+      top: 0;
+      background: #e8e8e4;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #555;
+      line-height: 20px;
+      text-align: center;
+      z-index: 10;
+    }
+    .section:hover .remark-btn { display: inline-block; }
+    .remarks-panel {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 320px;
+      background: #fff;
+      border: 1px solid #e0e0d8;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      z-index: 100;
+      display: none;
+    }
+    .remarks-panel.open { display: block; }
+    .remarks-panel h5 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .remarks-list { max-height: 180px; overflow-y: auto; margin-bottom: 10px; }
+    .remark-item {
+      font-size: 12.5px;
+      color: #333;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0ec;
+    }
+    .remark-item:last-child { border-bottom: none; }
+    .remark-input { width: 100%; font-size: 13px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 8px; }
+    .remarks-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      background: #fff;
+      color: #333;
+    }
+    .btn-sm.primary { background: #111; color: #fff; border-color: #111; }
+    .remarks-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="doc-label">Product Idea Document · Job Agent</div>
+    <h1 class="doc-title">Network Intelligence System</h1>
+    <p class="doc-subtitle">A targeting framework for job search outreach — WHO to reach, WHERE to find them, WHEN to message, and WHY they'll reply.</p>
+    <div class="doc-meta">
+      <span><strong>Status:</strong> Pre-build</span>
+      <span><strong>Author:</strong> HK + Claude</span>
+      <span><strong>Date:</strong> April 2026</span>
+      <span><strong>Repo:</strong> harrykapoor19/job-agent</span>
+    </div>
+  </div>
+
+  <!-- 1. The Core Problem -->
+  <div class="section" id="s1">
+    <div class="section-number">01</div>
+    <h2 class="section-title">The Core Problem</h2>
+
+    <p>Cold outreach in job search fails almost universally. Not because of bad writing — but because of bad targeting. Most people do one of two things:</p>
+
+    <div class="archetype-row">
+      <div class="archetype-card bad">
+        <div class="archetype-label">❌ The Fool's Move</div>
+        <h4>Message Sam Altman at 3pm</h4>
+        <ul>
+          <li>10,000+ DMs/week</li>
+          <li>Social media assistant filters</li>
+          <li>Zero hiring authority</li>
+          <li>Reply rate: effectively 0%</li>
+          <li>Famous = inbox overload</li>
+        </ul>
+      </div>
+      <div class="archetype-card ok">
+        <div class="archetype-label">⚠️ Mid Approach</div>
+        <h4>Message the Hiring Manager</h4>
+        <ul>
+          <li>Correct role, but everyone does this</li>
+          <li>Still gets 50-200 msgs/week</li>
+          <li>Feels transactional</li>
+          <li>Reply rate: 5-15%</li>
+          <li>Saturated channel</li>
+        </ul>
+      </div>
+      <div class="archetype-card ideal">
+        <div class="archetype-label">✅ The Smart Move</div>
+        <h4>Message the "Hidden Gem"</h4>
+        <ul>
+          <li>Relevant to the role</li>
+          <li>Gets &lt;10 msgs/week</li>
+          <li>Growth mindset, eager to help</li>
+          <li>Reply rate: 40-70%</li>
+          <li>Can champion you internally</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout insight">
+      <div class="callout-label">Core Insight</div>
+      <p><strong>The goal is not to reach the most important person. The goal is to reach the most reachable relevant person.</strong> Someone who has hiring influence (or a path to it), is not famous enough to be overwhelmed, and is in a mindset where they want to make connections.</p>
+    </div>
+  </div>
+
+  <!-- 2. WHO -->
+  <div class="section" id="s2">
+    <div class="section-number">02</div>
+    <h2 class="section-title">Framework I — WHO to Target</h2>
+
+    <p>We score every person at a target company on 6 factors. The final "Target Score" determines whether to reach out and in what order.</p>
+
+    <h3>The 6 Targeting Factors</h3>
+
+    <div class="framework-grid">
+      <div class="framework-card">
+        <h4>1. Role Relevance <span class="badge high">High weight</span></h4>
+        <p>Are they in the team you'd join? Do they work on the product area you care about? Can they vouch for you or flag your application internally?</p>
+        <div class="score-formula">
+          signal: title keywords, team name,<br>
+          LinkedIn "About" section, recent posts
+        </div>
+      </div>
+      <div class="framework-card">
+        <h4>2. Fame / Inbox Load <span class="badge high">High weight</span></h4>
+        <p>Inverted metric — lower is better. Twitter followers, LinkedIn followers, speaking appearances, press mentions. Sam Altman = 0 points. A PM Lead with 800 followers = high points.</p>
+        <div class="score-formula">
+          signal: follower count (Twitter, LinkedIn),<br>
+          # of press mentions in last 6 months
+        </div>
+      </div>
+      <div class="framework-card">
+        <h4>3. Growth Mindset Signal <span class="badge high">High weight</span></h4>
+        <p>Do they post about helping, building, learning? Do they engage with strangers? Do they respond to replies on their posts? This predicts reply-likelihood more than anything.</p>
+        <div class="score-formula">
+          signal: reply-to-post ratio on Twitter,<br>
+          keywords: "hiring", "DMs open", "happy to chat"
+        </div>
+      </div>
+      <div class="framework-card">
+        <h4>4. Company Tenure <span class="badge medium">Medium weight</span></h4>
+        <p>Newer employees (&lt;18 months) are more network-hungry. They're still building their internal credibility and external reputation. They want to make useful connections.</p>
+        <div class="score-formula">
+          signal: LinkedIn "joined [company] X ago",<br>
+          +30 pts if &lt;12 months, +15 pts if 12-24 months
+        </div>
+      </div>
+      <div class="framework-card">
+        <h4>5. Profile Match to You <span class="badge medium">Medium weight</span></h4>
+        <p>Shared background (same industry, similar career arc, same school) creates instant rapport. Someone who was also a PM at a fintech → AI company gets it immediately.</p>
+        <div class="score-formula">
+          signal: career overlap, sector overlap,<br>
+          same previous companies, shared connections
+        </div>
+      </div>
+      <div class="framework-card">
+        <h4>6. Network Distance <span class="badge medium">Medium weight</span></h4>
+        <p>2nd degree (you know someone who knows them) is significantly better than 3rd degree or cold. Even a weak tie is enough to justify mentioning the mutual.</p>
+        <div class="score-formula">
+          signal: LinkedIn mutual connections,<br>
+          2nd = +25 pts, 3rd = +10 pts, cold = 0 pts
+        </div>
+      </div>
+    </div>
+
+    <h3>Composite Target Score</h3>
+    <p>Weighted sum of all 6 factors, normalized to 0–100:</p>
+
+    <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:20px 24px; margin-top:8px;">
+      <div class="score-row">
+        <div class="score-label">Role Relevance</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:25%"></div></div>
+        <div class="score-weight">25%</div>
+        <div class="score-note">Does their work connect to the role you want?</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Low Inbox Load</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:25%"></div></div>
+        <div class="score-weight">25%</div>
+        <div class="score-note">Inverted fame score — less famous = higher score</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Growth Mindset</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:20%"></div></div>
+        <div class="score-weight">20%</div>
+        <div class="score-note">Reply behavior, help-seeking language, DMs open</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Company Tenure</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:15%"></div></div>
+        <div class="score-weight">15%</div>
+        <div class="score-note">New joiners are network-hungry by default</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Profile Match</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:10%"></div></div>
+        <div class="score-weight">10%</div>
+        <div class="score-note">Shared background creates instant credibility</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Network Distance</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:5%"></div></div>
+        <div class="score-weight">5%</div>
+        <div class="score-note">2nd degree &gt; 3rd degree &gt; cold</div>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:24px;">
+      <div class="callout-label">Output: Ranked List</div>
+      <p>For every target company, the system returns a <strong>ranked shortlist of 3-5 people</strong>, sorted by Target Score. Top person = first outreach. You message them one at a time, not all at once.</p>
+    </div>
+  </div>
+
+  <!-- 3. WHERE -->
+  <div class="section" id="s3">
+    <div class="section-number">03</div>
+    <h2 class="section-title">Framework II — WHERE to Reach Them</h2>
+
+    <p>Each person has a primary platform where they're most reachable. The system detects this automatically based on their public activity signals.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Best for</th>
+          <th>Detection signal</th>
+          <th>Reply rate</th>
+          <th>Use when</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Twitter / X reply</strong></td>
+          <td>Technical founders, researchers, builders</td>
+          <td>Posts &gt;2x/week, replies to strangers</td>
+          <td><span class="tag tag-green">High (30-60%)</span></td>
+          <td>They're active; reply to their post within 10 min</td>
+        </tr>
+        <tr>
+          <td><strong>LinkedIn DM</strong></td>
+          <td>PMs, operators, recruiters, execs</td>
+          <td>Active LinkedIn poster, recently connected with others</td>
+          <td><span class="tag tag-yellow">Medium (15-35%)</span></td>
+          <td>Professional tone fits, they're not on Twitter</td>
+        </tr>
+        <tr>
+          <td><strong>Email (cold)</strong></td>
+          <td>Technical leads, researchers, anyone with published email</td>
+          <td>Published on website, GitHub, paper, newsletter</td>
+          <td><span class="tag tag-yellow">Medium (10-25%)</span></td>
+          <td>Twitter + LinkedIn both cold; email adds formality</td>
+        </tr>
+        <tr>
+          <td><strong>Substack comment</strong></td>
+          <td>Thinkers, writers, content-heavy people</td>
+          <td>Active Substack, comments enabled</td>
+          <td><span class="tag tag-green">High (20-40%)</span></td>
+          <td>Underused; authors notice comments deeply</td>
+        </tr>
+        <tr>
+          <td><strong>LinkedIn connection note</strong></td>
+          <td>Anyone with LinkedIn presence</td>
+          <td>LinkedIn exists</td>
+          <td><span class="tag tag-yellow">Medium (10-30%)</span></td>
+          <td>Low-friction start; personalized note on connect request</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub issue / PR comment</strong></td>
+          <td>Engineers, open source contributors</td>
+          <td>Active GitHub, open source repos</td>
+          <td><span class="tag tag-green">Very high if targeted</span></td>
+          <td>They care about the work; a thoughtful comment signals depth</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Channel Priority Logic</h3>
+    <div class="callout">
+      <div class="callout-label">Priority Order</div>
+      <p>
+        <strong>1. Warm path first</strong> — if you have a mutual connection, ask them for an intro before doing anything else.<br><br>
+        <strong>2. Their most active channel second</strong> — where do they actually post and reply? Go there.<br><br>
+        <strong>3. Twitter reply hack</strong> — if they're on Twitter, this is usually the highest-leverage play. Engage on their content first, then DM.<br><br>
+        <strong>4. LinkedIn as fallback</strong> — if nothing else works, it always exists. But it's more saturated.<br><br>
+        <strong>5. Email as escalation</strong> — only after Twitter/LinkedIn attempts, or if they have published their email.
+      </p>
+    </div>
+  </div>
+
+  <!-- 4. WHEN -->
+  <div class="section" id="s4">
+    <div class="section-number">04</div>
+    <h2 class="section-title">Framework III — WHEN to Message</h2>
+
+    <p>Timing is the difference between being seen and being buried. The system tracks posting patterns to predict the best window.</p>
+
+    <h3>The 10-Minute Twitter Hack — Productized</h3>
+
+    <div class="callout insight">
+      <div class="callout-label">The Hack</div>
+      <p>When a founder or key person posts on Twitter, the first 10-15 minutes is when they're <strong>staring at their phone watching replies come in</strong>. This is the single highest-attention window. A thoughtful reply in this window has a 10-20x higher chance of being seen and responded to vs. a cold DM 3 days later.</p>
+    </div>
+
+    <h3>How We Productize This</h3>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <h4>Build Posting Pattern Model</h4>
+          <p>Pull last 30-50 tweets from each target person. Compute: <code>avg post time</code>, <code>day-of-week frequency</code>, <code>time zone inference</code>, <code>avg gap between posts</code>. Most US founders post Mon-Wed, 7-9am their local time (phone in bed habit).</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <h4>Predict Next Post Window</h4>
+          <p>From the pattern, predict: <em>"Tom Brown typically posts Tuesday-Thursday between 8-9am PT. Next likely post window: Tuesday morning."</em> The system shows you this as a scheduling recommendation.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <h4>Real-Time Monitor + Push Notification</h4>
+          <p>Scheduler polls their Twitter every 15-20 minutes during the predicted window. When a new post is detected, macOS push notification fires: <em>"Tom Brown just posted — reply window open. Click to see tweet."</em></p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <h4>Reply Draft Ready</h4>
+          <p>Claude pre-generates a <strong>reply draft</strong> based on: (a) the tweet content, (b) your profile and interest in their company, (c) communication style match. You review, tweak in 60 seconds, post. Then follow up with a DM.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <h4>DM After Engagement</h4>
+          <p>After replying to 2-3 of their posts over 1-2 weeks, send the DM. You're no longer cold — you're someone they've seen before. This is the warm → warm-er path without a mutual connection.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>General Timing Rules by Channel</h3>
+
+    <table>
+      <thead>
+        <tr><th>Channel</th><th>Best time</th><th>Worst time</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Twitter reply</td>
+          <td>Within 10 min of their post</td>
+          <td>2+ hours after post</td>
+          <td>They're watching notifications live</td>
+        </tr>
+        <tr>
+          <td>Twitter DM</td>
+          <td>Right after a reply they liked/responded to</td>
+          <td>Cold DM with no prior engagement</td>
+          <td>Context and recognition drive replies</td>
+        </tr>
+        <tr>
+          <td>LinkedIn DM</td>
+          <td>Tue-Thu, 8-11am or 6-8pm their TZ</td>
+          <td>Monday morning, Friday afternoon</td>
+          <td>Professional mode — not commute, not weekend</td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td>Tue-Wed, 7-9am their TZ (send Mon night)</td>
+          <td>Friday PM, Monday AM</td>
+          <td>Email inboxes emptied Tue/Wed mornings</td>
+        </tr>
+        <tr>
+          <td>Substack comment</td>
+          <td>Within 24 hrs of article publish</td>
+          <td>Commenting on 6-month-old posts</td>
+          <td>Authors check comments heavily right after publishing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. WHY THEY'LL REPLY -->
+  <div class="section" id="s5">
+    <div class="section-number">05</div>
+    <h2 class="section-title">Framework IV — WHY They'll Reply</h2>
+
+    <p>The message content has to match the person. Claude generates the outreach draft based on a "reply motivation" model — what makes <em>this specific person</em> want to respond?</p>
+
+    <table>
+      <thead>
+        <tr><th>Person Type</th><th>What they respond to</th><th>What kills the message</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Builder / Founder</strong></td>
+          <td>Specific insight about their product, genuine curiosity about what they're building, offer to help</td>
+          <td>Generic "I love your company", asking for a job directly, too long</td>
+        </tr>
+        <tr>
+          <td><strong>PM / Operator</strong></td>
+          <td>Shared problem they've worked on, relevant experience that's directly applicable, comp/role fit signal</td>
+          <td>Vague profile, no specific role mentioned, flattery without substance</td>
+        </tr>
+        <tr>
+          <td><strong>Researcher / Technical</strong></td>
+          <td>Evidence you've read their work, sharp question about their research, specific technical POV</td>
+          <td>Business-speak, "I'm passionate about AI", lack of technical depth</td>
+        </tr>
+        <tr>
+          <td><strong>New-to-company employee</strong></td>
+          <td>"I noticed you just joined X — how's the transition going?" Network-building framing, not job-asking</td>
+          <td>Asking for referral immediately — they don't have leverage yet</td>
+        </tr>
+        <tr>
+          <td><strong>Growth mindset poster</strong></td>
+          <td>Responding directly to something they wrote, adding a concrete insight, being useful</td>
+          <td>Making it about you too soon; not referencing their content</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="callout-label">The Golden Rule</div>
+      <p>The message should look like you've done 10 minutes of research on <em>them specifically</em> — not like you sent 50 people the same thing. Claude generates this using their recent tweets, LinkedIn summary, and any recent interviews. The personality-profiler skill feeds directly into the message generator.</p>
+    </div>
+  </div>
+
+  <!-- 6. SYSTEM DESIGN -->
+  <div class="section" id="s6">
+    <div class="section-number">06</div>
+    <h2 class="section-title">System Design — What We're Building</h2>
+
+    <div class="module-grid">
+      <div class="module-card">
+        <h4>1. CLI Chat Interface</h4>
+        <div class="module-file">cli.py</div>
+        <p>Main way you interact with the agent. Natural language: "add Anthropic to my list", "who should I reach at Cohere", "profile Tom Brown", "when should I message him". Powered by Claude with tool calls into the pipeline.</p>
+      </div>
+      <div class="module-card">
+        <h4>2. Target Company Intelligence</h4>
+        <div class="module-file">agent/pipeline.py (extended)</div>
+        <p>Tell the agent a company name → it runs job discovery, scores roles, gives a directional brief: what the company does, which team has PM roles, what type of PM they hire. Adds to Supabase companies table.</p>
+      </div>
+      <div class="module-card">
+        <h4>3. Network Path Finder</h4>
+        <div class="module-file">agent/network.py (new)</div>
+        <p>Given a company: finds relevant people using Apify LinkedIn scraper. Scores them on the 6 targeting factors. Returns a ranked list with warm/cold path, suggested channel, and suggested timing.</p>
+      </div>
+      <div class="module-card">
+        <h4>4. Reach-Out Intelligence</h4>
+        <div class="module-file">agent/reach_out.py (new)</div>
+        <p>For a specific person: deep research on their presence. Best channel (Twitter/LinkedIn/email/Substack). Twitter posting pattern + predicted next post time. Claude-generated outreach draft tuned to their communication style.</p>
+      </div>
+      <div class="module-card">
+        <h4>5. Twitter Activity Monitor</h4>
+        <div class="module-file">agent/twitter_monitor.py (new)</div>
+        <p>Polls Twitter for a watchlist of handles every 20 min during their predicted active window. macOS push notification within 10 min of a new post. Pre-generates reply draft. Tracks engagement history per person.</p>
+      </div>
+      <div class="module-card">
+        <h4>6. Profile (HK)</h4>
+        <div class="module-file">profile/harry.md (new)</div>
+        <p>Your resume, voice, strongest stories, career arc. Fed into every Claude prompt — scoring, outreach drafts, reply generation. Currently Rachita's profile; needs to be swapped to yours.</p>
+      </div>
+    </div>
+
+    <h3>Data Flow</h3>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <h4>You add a company</h4>
+          <p><code>python cli.py</code> → "add Anthropic to my target list" → pipeline runs, jobs found and scored, company added to Supabase.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <h4>Company brief generated</h4>
+          <p>Claude generates directional brief: company type, active roles, which team, culture signals. Pulls from job descriptions + web research.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <h4>Network path analysis</h4>
+          <p>Apify scrapes people at the company on LinkedIn. Claude scores each on the 6 targeting factors. Returns ranked list: "Here are 4 people to reach. Start with [Person A] — they're a PM Lead, joined 8 months ago, active on Twitter, posts about product strategy."</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <h4>Deep profile + reach-out intel</h4>
+          <p>"Profile Person A" → personality profiler runs + reach_out.py adds: best channel = Twitter, posts Tue-Thu 8am PT, last post was 3 days ago, predicted next post: Tuesday. Draft reply ready.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <h4>Twitter monitor activated</h4>
+          <p>Person A added to watchlist. Scheduler polls their Twitter every 20 min on Tuesday morning. You get a macOS notification: "Person A just posted → reply window open." Draft ready. You post within 10 min.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Open Questions / Assumptions -->
+  <div class="section" id="s7">
+    <div class="section-number">07</div>
+    <h2 class="section-title">Open Questions Before Build</h2>
+
+    <table>
+      <thead>
+        <tr><th>Question</th><th>Status</th><th>Impact if wrong</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HK's profile / resume (for scoring + outreach voice)</td>
+          <td><span class="tag tag-red">Needed</span></td>
+          <td>All outreach drafts will be wrong until populated</td>
+        </tr>
+        <tr>
+          <td>Apify LinkedIn "people at company" scraper availability + cost</td>
+          <td><span class="tag tag-yellow">To verify</span></td>
+          <td>Network path finder falls back to manual company search</td>
+        </tr>
+        <tr>
+          <td>Twitter API vs Apify for monitoring (rate limits, cost)</td>
+          <td><span class="tag tag-yellow">To verify</span></td>
+          <td>May need to poll less frequently (30-60 min vs 15 min)</td>
+        </tr>
+        <tr>
+          <td>macOS notifications: background scheduler needs to be running</td>
+          <td><span class="tag tag-green">Known limitation</span></td>
+          <td>User must keep scheduler.py running locally for push notifs</td>
+        </tr>
+        <tr>
+          <td>LinkedIn 2nd/3rd degree connection data (needs your session cookie)</td>
+          <td><span class="tag tag-red">Hard without API</span></td>
+          <td>Warm path detection is manual until solved</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. Build Order -->
+  <div class="section" id="s8">
+    <div class="section-number">08</div>
+    <h2 class="section-title">Build Sequence</h2>
+
+    <div class="callout">
+      <div class="callout-label">Recommended Order</div>
+      <p>
+        <strong>Phase 1 (today):</strong> CLI chat interface + target company feature + company brief. This gives you something usable immediately.<br><br>
+        <strong>Phase 2:</strong> Network path finder (people at company, scored). Needs Apify actor selection.<br><br>
+        <strong>Phase 3:</strong> Reach-out intel module per person (best channel + timing). Extends personality profiler.<br><br>
+        <strong>Phase 4:</strong> Twitter activity monitor + macOS notifications. The 10-minute hack, productized.<br><br>
+        <strong>Phase 5:</strong> HK profile + voice training. Swap Rachita's profile, train outreach drafts on your voice.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Remarks System -->
+<button class="remarks-toggle" onclick="toggleRemarks()" title="Add remarks">✎</button>
+<div class="remarks-panel" id="remarksPanel">
+  <h5>Remarks</h5>
+  <div class="remarks-list" id="remarksList"></div>
+  <input class="remark-input" id="remarkInput" type="text" placeholder="Add a remark..." />
+  <div class="remarks-actions">
+    <button class="btn-sm primary" onclick="addRemark()">Add</button>
+    <button class="btn-sm" onclick="copyRemarks()">Copy All</button>
+    <button class="btn-sm" onclick="clearRemarks()">Clear</button>
+  </div>
+</div>
+
+<script>
+  let remarks = JSON.parse(localStorage.getItem('pid_remarks') || '[]');
+
+  function toggleRemarks() {
+    const panel = document.getElementById('remarksPanel');
+    panel.classList.toggle('open');
+    renderRemarks();
+  }
+
+  function renderRemarks() {
+    const list = document.getElementById('remarksList');
+    list.innerHTML = remarks.length
+      ? remarks.map((r, i) => `<div class="remark-item"><span style="color:#aaa;font-size:11px">${i+1}.</span> ${r}</div>`).join('')
+      : '<div style="color:#aaa;font-size:12px;padding:4px 0">No remarks yet.</div>';
+  }
+
+  function addRemark() {
+    const input = document.getElementById('remarkInput');
+    if (input.value.trim()) {
+      remarks.push(input.value.trim());
+      localStorage.setItem('pid_remarks', JSON.stringify(remarks));
+      input.value = '';
+      renderRemarks();
+    }
+  }
+
+  function copyRemarks() {
+    if (!remarks.length) return;
+    navigator.clipboard.writeText(remarks.map((r, i) => `${i+1}. ${r}`).join('\n'));
+  }
+
+  function clearRemarks() {
+    remarks = [];
+    localStorage.setItem('pid_remarks', JSON.stringify(remarks));
+    renderRemarks();
+  }
+
+  document.getElementById('remarkInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addRemark();
+  });
+</script>
+</body>
+</html>

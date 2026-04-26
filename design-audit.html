@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Agent — Design System Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-alt: #F5F5F7;
+    --border: #E5E5E7;
+    --text-primary: #1D1D1F;
+    --text-secondary: #6E6E73;
+    --text-muted: #AEAEB2;
+    --brand: #6366F1;
+    --brand-light: #EEF2FF;
+    --green: #34C759;
+    --green-bg: #F0FDF4;
+    --green-border: #BBF7D0;
+    --amber: #FF9F0A;
+    --amber-bg: #FFFBEB;
+    --amber-border: #FDE68A;
+    --red: #FF3B30;
+    --red-bg: #FEF2F2;
+    --red-border: #FECACA;
+    --blue: #007AFF;
+    --blue-bg: #EFF6FF;
+    --blue-border: #BFDBFE;
+    --purple: #AF52DE;
+    --purple-bg: #FAF5FF;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-meta {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header h1 span { color: var(--brand); }
+  .header p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 640px;
+  }
+
+  /* Verdict Banner */
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-sm);
+  }
+  .verdict-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .verdict-text {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  /* Score Grid */
+  .scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .score-card .score-value {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .score-card .score-max {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .score-card .score-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 8px;
+  }
+  .score-green .score-value { color: var(--green); }
+  .score-amber .score-value { color: var(--amber); }
+  .score-red .score-value { color: var(--red); }
+  .score-blue .score-value { color: var(--blue); }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--text-primary);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Audit Items */
+  .audit-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+  .audit-item:hover .remark-trigger {
+    opacity: 1;
+  }
+  .audit-item h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .audit-item p, .audit-item li {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .audit-item ul {
+    margin-left: 16px;
+    margin-top: 8px;
+  }
+  .audit-item ul li {
+    margin-bottom: 4px;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .tag-pass { background: var(--green-bg); color: #15803D; border: 1px solid var(--green-border); }
+  .tag-warn { background: var(--amber-bg); color: #B45309; border: 1px solid var(--amber-border); }
+  .tag-fail { background: var(--red-bg); color: #DC2626; border: 1px solid var(--red-border); }
+  .tag-info { background: var(--blue-bg); color: #1D4ED8; border: 1px solid var(--blue-border); }
+  .tag-neutral { background: var(--surface-alt); color: var(--text-secondary); border: 1px solid var(--border); }
+
+  /* Code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface-alt);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--brand);
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface-alt);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin-top: 12px;
+    line-height: 1.7;
+    color: var(--text-primary);
+  }
+
+  /* Comparison Table */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .compare-table th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface-alt);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+  .compare-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+  .compare-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child { font-weight: 500; color: var(--text-primary); }
+
+  /* Recommendations */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .rec-card.priority-high {
+    border-left: 3px solid var(--red);
+  }
+  .rec-card.priority-med {
+    border-left: 3px solid var(--amber);
+  }
+  .rec-card.priority-low {
+    border-left: 3px solid var(--blue);
+  }
+  .rec-card h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .rec-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  .rec-card .rec-effort {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* Remarks System */
+  .remark-trigger {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .remark-trigger:hover {
+    background: var(--brand-light);
+    color: var(--brand);
+    border-color: var(--brand);
+  }
+  .remark-input {
+    margin-top: 12px;
+    display: none;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .remark-input.active { display: flex; }
+  .remark-input textarea {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    min-height: 36px;
+    outline: none;
+  }
+  .remark-input textarea:focus { border-color: var(--brand); }
+  .remark-input button {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    background: var(--brand);
+    color: white;
+  }
+  .remark-display {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #FFFDE7;
+    border: 1px solid #FFF9C4;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: #5D4037;
+    display: none;
+  }
+  .remark-display.active { display: block; }
+
+  .copy-all-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    display: none;
+    transition: background 0.15s;
+    z-index: 100;
+  }
+  .copy-all-btn:hover { background: var(--surface-alt); }
+  .copy-all-btn.visible { display: block; }
+
+  /* Stack helper */
+  .stack-sm > * + * { margin-top: 8px; }
+  .stack-md > * + * { margin-top: 16px; }
+
+  @media (max-width: 700px) {
+    .scores { grid-template-columns: repeat(2, 1fr); }
+    .rec-grid { grid-template-columns: 1fr; }
+    .container { padding: 24px 16px 60px; }
+    .header h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-meta">Design System Audit &middot; April 2026</div>
+    <h1>Job Agent <span>Frontend Review</span></h1>
+    <p>Evaluated against Laws of UX, Material Design 3, Apple HIG, and the design-system.md spec (premium/minimalist, dark-mode-first, gradient accents).</p>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict" data-remarkable="true">
+    <div class="verdict-label">Overall Verdict</div>
+    <div class="verdict-text">Functional and well-structured, but visually generic. The UI relies on Tailwind defaults + system fonts + emoji icons, producing a "good internal tool" aesthetic — not the premium, Apple/CRED-inspired direction your design-system.md targets. The bones are solid (responsive grids, semantic color system, component reuse). The skin needs work (typography, motion, depth, iconography, dark mode).</div>
+    <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+    <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+    <div class="remark-display"></div>
+  </div>
+
+  <!-- Scores -->
+  <div class="scores">
+    <div class="score-card score-green">
+      <div class="score-value">7</div>
+      <div class="score-max">/ 10</div>
+      <div class="score-label">Color System</div>
+    </div>
+    <div class="score-card score-amber">
+      <div class="score-value">4</div>
+      <div class="score-max">/ 10</div>
+      <div class="score-label">Typography</div>
+    </div>
+    <div class="score-card score-amber">
+      <div class="score-value">5</div>
+      <div class="score-max">/ 10</div>
+      <div class="score-label">Motion & Polish</div>
+    </div>
+    <div class="score-card score-green">
+      <div class="score-value">8</div>
+      <div class="score-max">/ 10</div>
+      <div class="score-label">Layout & Spacing</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Color -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">1</span>
+      <span class="section-title">Color System</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Brand Palette <span class="tag tag-pass">PASS</span></h4>
+      <p>Brand indigo (#6366F1) is well-defined with proper tonal scale (50–700). Three interaction states: rest, hover, active. Consistent usage across primary buttons, active nav tabs, and focus rings.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Semantic Colors <span class="tag tag-pass">PASS</span></h4>
+      <p>Clean mapping: emerald = success/high score, amber = warning/medium, red = danger/low, blue = info. Each has bg/border/text variants. The <code>scoreColor()</code>, <code>sectorColor()</code>, and <code>stageColor()</code> utility functions enforce this consistently.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>No Gradient Accents <span class="tag tag-warn">GAP</span></h4>
+      <p>Your design-system.md spec calls for "gradient accents, not flat colors." The current UI is entirely flat — solid background fills, no gradients anywhere. Score badges, buttons, and header are all single-color.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>No Dark Mode <span class="tag tag-fail">FAIL</span></h4>
+      <p>Design-system.md specifies "dark mode first." The app has no dark mode, no <code>prefers-color-scheme</code> media query, no theme toggle. All backgrounds are hardcoded white/gray.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 2: Typography -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">2</span>
+      <span class="section-title">Typography</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>No Custom Fonts <span class="tag tag-fail">FAIL</span></h4>
+      <p>Uses Tailwind's default system font stack (system-ui, sans-serif). No display font, no body font pairing. The design-system.md spec requires a defined type scale: Display, Headline, Title, Body, Label — with explicit sizes, weights, and line heights. None of this exists.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Type Scale <span class="tag tag-warn">INCOMPLETE</span></h4>
+      <p>Ad-hoc Tailwind size classes: <code>text-xs</code>, <code>text-sm</code>, <code>text-base</code>, <code>text-lg</code>. No defined hierarchy. Most UI text is text-xs/text-sm, making the interface feel uniformly small. Headers like "Open Roles" and page titles don't stand out enough from body content.</p>
+      <table class="compare-table">
+        <thead><tr><th>Role</th><th>Current</th><th>Recommended (MD3)</th></tr></thead>
+        <tbody>
+          <tr><td>Display</td><td>Not used</td><td>36px / 700 / -0.02em</td></tr>
+          <tr><td>Headline</td><td>text-lg bold</td><td>28px / 600 / -0.01em</td></tr>
+          <tr><td>Title</td><td>text-sm semibold</td><td>20px / 600</td></tr>
+          <tr><td>Body</td><td>text-sm</td><td>15px / 400 / 1.6</td></tr>
+          <tr><td>Label</td><td>text-xs</td><td>12px / 500 / 0.04em</td></tr>
+        </tbody>
+      </table>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 3: Spacing & Layout -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">3</span>
+      <span class="section-title">Spacing & Layout</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>4px Grid <span class="tag tag-pass">PASS</span></h4>
+      <p>Tailwind's spacing scale is 4px-based by default. Usage of <code>px-3</code> (12px), <code>py-2</code> (8px), <code>gap-4</code> (16px) etc. stays on the grid. Consistent throughout.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Responsive Grid <span class="tag tag-pass">PASS</span></h4>
+      <p>Proper responsive breakpoints: 1 col mobile → 2 col tablet (sm:640px) → 3 col desktop (lg:1024px) → 4 col wide (xl:1280px). Applied correctly across OpenRoles grid, Sources grid, HowItWorks cards.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Container Width <span class="tag tag-pass">PASS</span></h4>
+      <p><code>max-w-7xl mx-auto</code> (1280px) is appropriate. Content doesn't stretch uncomfortably on wide screens.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Elevation System <span class="tag tag-warn">MINIMAL</span></h4>
+      <p>Only 2 levels used: <code>shadow-sm</code> (cards at rest) and <code>shadow-md</code> (cards on hover). MD3 recommends 5 elevation levels. No elevation hierarchy distinguishes sticky header, modals, or dropdowns from content cards.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 4: Components -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">4</span>
+      <span class="section-title">Components</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Button System <span class="tag tag-pass">PASS</span></h4>
+      <p>Six button variants defined in <code>index.css</code>: primary, secondary, ghost, success, warning, danger. All share a base <code>.btn</code> class. Proper disabled states with opacity + cursor. Size is consistent (text-xs, px-3 py-1.5).</p>
+      <ul>
+        <li>Missing: icon-only button variant, FAB, loading state with spinner</li>
+        <li>Missing: size variants (sm, md, lg) — currently one size fits all</li>
+      </ul>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Card Component <span class="tag tag-pass">PASS</span></h4>
+      <p>Single <code>.card</code> class: white bg, rounded-xl, gray-200 border, shadow-sm. Used consistently for JobCard and various page cards. Hover state adds shadow-md — good depth signal.</p>
+      <ul>
+        <li>Missing: card variants (elevated, filled, outlined per MD3)</li>
+        <li>Missing: card skeleton/loading state</li>
+      </ul>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Iconography <span class="tag tag-fail">FAIL</span></h4>
+      <p>Entire app uses emoji for icons: &#x26A1; (logo), &#x1F50D;&#x1F4CA;&#x1F5C2;&#x2705; (how-it-works), &#x2709;&#xFE0F; (outreach), &#x23F0; (follow-up). Emojis render inconsistently across platforms and don't scale cleanly. They undermine the premium aesthetic target.</p>
+      <p style="margin-top: 8px;">Recommendation: Replace with a proper icon library (Lucide, Phosphor, or SF Symbols-inspired set). 24px stroke icons, consistent weight.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Form Inputs <span class="tag tag-warn">BASIC</span></h4>
+      <p>Text inputs and textareas have focus rings (<code>focus:ring-2 focus:ring-brand-200</code>) and basic styling. No outlined vs. filled variants, no floating labels, no validation state styling (error borders, helper text). The skip-reason input and notes fields lack visual hierarchy.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Navigation <span class="tag tag-warn">FUNCTIONAL</span></h4>
+      <p>Sticky header with 6 horizontal tabs. Active tab uses brand-500 underline. No mobile hamburger menu — tabs overflow on small screens. No breadcrumbs or secondary navigation. The "HowItWorks" collapsible is an unusual pattern for a nav-adjacent element.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 5: UX Principles -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">5</span>
+      <span class="section-title">UX Principles (Laws of UX)</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Fitts's Law <span class="tag tag-warn">PARTIAL</span></h4>
+      <p>Buttons use <code>px-3 py-1.5</code> — approximately 36px height, under the 44px minimum touch target. Action buttons in JobCard footer are small and closely spaced. The "Skip" text link is especially small and hard to tap on mobile.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Hick's Law <span class="tag tag-pass">PASS</span></h4>
+      <p>Good progressive disclosure. Each page focuses on one status category. Filters limit visible options. Pipeline and OnRadar use collapsible cards to hide detail until needed. The Sources page groups actions into labeled sections.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Aesthetic-Usability Effect <span class="tag tag-warn">UNDER-LEVERAGED</span></h4>
+      <p>The interface is clean but not beautiful. System fonts + emoji icons + flat white surfaces create a functional-but-forgettable experience. Users perceive beautiful interfaces as more usable — investing in typography, depth, and subtle motion would improve perceived quality.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Doherty Threshold <span class="tag tag-fail">NO FEEDBACK</span></h4>
+      <p>No loading indicators, no optimistic UI, no skeleton screens. Status changes (Pipeline, Reached Out, Applied) happen silently — no toast, no animation, no confirmation. The "Loading..." text string is the only loading state. Users have no confidence their action registered.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 6: Accessibility -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">6</span>
+      <span class="section-title">Accessibility (WCAG 2.1 AA)</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Color Contrast <span class="tag tag-pass">PASS</span></h4>
+      <p>Primary text (gray-900 on white) exceeds 4.5:1. Brand-500 on white is 4.6:1 — borderline but passes. Score badges pair color with text labels, not color-only.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Touch Targets <span class="tag tag-fail">FAIL</span></h4>
+      <p>Buttons at ~36px height are below the 44x44px minimum. Text links ("Skip", "View") are even smaller. Filter dropdowns have adequate size but tag pills in cards are tight. Needs padding increase on all interactive elements.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>ARIA & Semantics <span class="tag tag-warn">MINIMAL</span></h4>
+      <p>No ARIA labels, roles, or live regions. Tables use <code>&lt;thead&gt;</code>/<code>&lt;tbody&gt;</code> (good). No <code>&lt;nav&gt;</code> landmark for navigation. No <code>aria-expanded</code> on collapsible sections. Screen reader experience would be poor.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Focus Management <span class="tag tag-warn">BASIC</span></h4>
+      <p>Focus rings on inputs (<code>focus:ring-2 focus:ring-brand-200</code>) but <code>focus:outline-none</code> removes the browser default without always replacing it on buttons and links. Tab order follows DOM order (acceptable). No focus trap in skip-reason form or outreach draft areas.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 7: Motion -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">7</span>
+      <span class="section-title">Motion & Transitions</span>
+    </div>
+
+    <div class="audit-item" data-remarkable="true">
+      <h4>Hover Transitions <span class="tag tag-warn">MINIMAL</span></h4>
+      <p>Only <code>transition-colors</code> on buttons and <code>transition-all</code> on card shadows. No entrance animations, no page transitions, no staggered reveals. Collapsible sections (OnRadar, Pipeline) toggle instantly with no height animation. Status changes produce no visual feedback.</p>
+      <p style="margin-top: 8px;">The design-system.md spec defines 4 duration levels (100ms, 200ms, 300ms, 500ms) with easing curves — none are implemented.</p>
+      <button class="remark-trigger" onclick="toggleRemark(this)">+</button>
+      <div class="remark-input"><textarea placeholder="Add a remark..."></textarea><button onclick="saveRemark(this)">Save</button></div>
+      <div class="remark-display"></div>
+    </div>
+  </div>
+
+  <!-- Section 8: Recommendations -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number">8</span>
+      <span class="section-title">Recommendations</span>
+    </div>
+
+    <div class="rec-grid">
+      <div class="rec-card priority-high">
+        <h5>1. Add a type system</h5>
+        <p>Pick a display + body font pairing. Define a 5-level type scale in <code>tailwind.config.js</code>. Apply consistently: page titles = Headline, card titles = Title, metadata = Label.</p>
+        <div class="rec-effort">Effort: ~2 hours &middot; Impact: High</div>
+      </div>
+      <div class="rec-card priority-high">
+        <h5>2. Replace emoji with icons</h5>
+        <p>Install Lucide React or Phosphor. Replace all emoji usage with 20px/24px stroke icons. Consistent visual language, better cross-platform rendering.</p>
+        <div class="rec-effort">Effort: ~3 hours &middot; Impact: High</div>
+      </div>
+      <div class="rec-card priority-high">
+        <h5>3. Add dark mode</h5>
+        <p>Convert all color values to CSS variables. Add <code>dark:</code> variants via Tailwind's dark mode. Add a theme toggle in the header. Your spec says dark-mode-first.</p>
+        <div class="rec-effort">Effort: ~4 hours &middot; Impact: High</div>
+      </div>
+      <div class="rec-card priority-med">
+        <h5>4. Action feedback</h5>
+        <p>Add toast notifications for status changes. Loading spinners on async buttons. Skeleton screens instead of "Loading..." text. Optimistic UI updates.</p>
+        <div class="rec-effort">Effort: ~3 hours &middot; Impact: Medium</div>
+      </div>
+      <div class="rec-card priority-med">
+        <h5>5. Touch target sizing</h5>
+        <p>Increase button padding to min 44px height. Add hit-area padding to text links. Ensure filter dropdowns and tag pills meet minimum targets.</p>
+        <div class="rec-effort">Effort: ~1 hour &middot; Impact: Medium</div>
+      </div>
+      <div class="rec-card priority-med">
+        <h5>6. Entrance motion</h5>
+        <p>Add staggered fade-in on card grids (animation-delay per card). Smooth height transitions on collapsibles. Page transition fade. Use the 4 duration tokens from your spec.</p>
+        <div class="rec-effort">Effort: ~2 hours &middot; Impact: Medium</div>
+      </div>
+      <div class="rec-card priority-low">
+        <h5>7. Elevation hierarchy</h5>
+        <p>Define 5 shadow levels. Sticky header at level 2, cards at level 1, modals at level 4. Add gradient accents per your spec — subtle brand gradient on header or primary buttons.</p>
+        <div class="rec-effort">Effort: ~1 hour &middot; Impact: Low-Medium</div>
+      </div>
+      <div class="rec-card priority-low">
+        <h5>8. ARIA & semantics</h5>
+        <p>Add <code>&lt;nav&gt;</code> landmark, <code>aria-expanded</code> on collapsibles, <code>aria-live</code> on toast regions, proper button labels for icon-only elements.</p>
+        <div class="rec-effort">Effort: ~2 hours &middot; Impact: Low (until users need it)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Copy All Remarks Button -->
+<button class="copy-all-btn" id="copyAllBtn" onclick="copyAllRemarks()">Copy All Remarks</button>
+
+<script>
+  function toggleRemark(trigger) {
+    const item = trigger.closest('[data-remarkable]');
+    const input = item.querySelector('.remark-input');
+    const display = item.querySelector('.remark-display');
+    if (display && display.classList.contains('active')) {
+      return;
+    }
+    input.classList.toggle('active');
+    if (input.classList.contains('active')) {
+      input.querySelector('textarea').focus();
+    }
+  }
+
+  function saveRemark(btn) {
+    const inputDiv = btn.closest('.remark-input');
+    const textarea = inputDiv.querySelector('textarea');
+    const val = textarea.value.trim();
+    if (!val) return;
+
+    const item = inputDiv.closest('[data-remarkable]');
+    const display = item.querySelector('.remark-display');
+
+    display.textContent = val;
+    display.classList.add('active');
+    inputDiv.classList.remove('active');
+    textarea.value = '';
+
+    updateCopyButton();
+  }
+
+  function updateCopyButton() {
+    const remarks = document.querySelectorAll('.remark-display.active');
+    const btn = document.getElementById('copyAllBtn');
+    btn.classList.toggle('visible', remarks.length > 0);
+  }
+
+  function copyAllRemarks() {
+    const remarks = document.querySelectorAll('.remark-display.active');
+    const lines = [];
+    remarks.forEach((r, i) => {
+      const item = r.closest('[data-remarkable]');
+      const heading = item.querySelector('h4, .verdict-label');
+      const ctx = heading ? heading.textContent.replace(/PASS|FAIL|GAP|WARN|INCOMPLETE|MINIMAL|BASIC|PARTIAL|UNDER-LEVERAGED|NO FEEDBACK|FUNCTIONAL/g, '').trim() : `Item ${i + 1}`;
+      lines.push(`- [${ctx}] ${r.textContent}`);
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      const btn = document.getElementById('copyAllBtn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy All Remarks'; }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>

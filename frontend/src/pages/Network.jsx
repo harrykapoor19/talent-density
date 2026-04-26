@@ -180,14 +180,14 @@ export default function Network() {
         <div className="flex items-center gap-2 mb-4">
           <Users size={15} className="text-brand-600" />
           <h2 className="text-title font-semibold text-fg">Find People</h2>
-          <span className="text-caption text-fg-muted">Who to contact — ranked by response potential</span>
+          <span className="text-caption text-fg-muted">Your peer-contact at any company — ranked by who will actually respond</span>
         </div>
 
         {findResults === null && !findLoading && (
           <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mb-4">
             <AlertTriangle size={13} className="text-amber-600 mt-0.5 shrink-0" />
             <p className="text-caption text-amber-800">
-              Calls Apify (~$0.02) + Claude Sonnet to score contacts. Results take ~15s.
+              Calls Apify (~$0.02) + Claude to identify your peer-contact. Not the CEO — the builder who can vouch for you. Results take ~15s.
             </p>
           </div>
         )}
@@ -238,7 +238,7 @@ export default function Network() {
 
         {!findLoading && findResults !== null && findResults.length === 0 && (
           <p className="text-body text-fg-muted text-center py-6">
-            No people found. Try a different company name or add a role hint.
+            No people found. Try a different company name or a role hint like "head of growth".
           </p>
         )}
 
@@ -283,7 +283,7 @@ export default function Network() {
           <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-caption font-semibold text-sky-800">
-                New tweets — reply window open
+                New posts — 10-minute engagement window open
               </span>
               <button
                 onClick={() => setNewPosts([])}
@@ -309,9 +309,9 @@ export default function Network() {
         ) : watchlist.length === 0 ? (
           <div className="text-center py-10">
             <Users size={28} className="text-fg-muted mx-auto mb-2 opacity-30" />
-            <p className="text-body text-fg-muted">No one on your watchlist yet.</p>
+            <p className="text-body text-fg-muted">No one being tracked yet.</p>
             <p className="text-caption text-fg-muted mt-0.5">
-              Find people above and click <strong>Watch on X</strong>.
+              Find people above and click <strong>Watch on X</strong> to get alerted the moment they post.
             </p>
           </div>
         ) : (

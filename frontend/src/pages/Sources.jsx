@@ -294,7 +294,7 @@ export default function Sources() {
       <div className="card p-3.5 flex items-center gap-3">
         <div className="flex-1">
           <div className="text-body font-medium text-fg">Run Full Pipeline</div>
-          <div className="text-caption text-fg-muted mt-0.5">Manually trigger the weekly agent run. Polls all 100+ tracked companies on Ashby and Greenhouse, scores new jobs with Claude, and updates Open Roles and On Radar.</div>
+          <div className="text-caption text-fg-muted mt-0.5">Polls all tracked companies for open roles, scores them with Claude, and refreshes Open Roles and On Radar. Useful after adding new companies.</div>
         </div>
         <button className="btn-primary" onClick={runPipeline} disabled={running}>
           {running ? <Spinner size={16} /> : <Play size={16} />}

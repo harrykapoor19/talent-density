@@ -54,8 +54,8 @@ export default function Auth() {
           </h1>
           <p className="text-caption text-fg-muted mb-5">
             {mode === 'login'
-              ? 'Sign in to your job search dashboard'
-              : 'Start tracking your job search with AI'}
+              ? 'Track and engage the people who matter'
+              : 'Stay close to the highest-density talent'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-3">
