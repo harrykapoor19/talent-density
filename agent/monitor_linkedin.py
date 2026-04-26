@@ -62,7 +62,7 @@ def save_seen(seen: set):
 
 def fetch_recent_posts(profile_url: str) -> list:
     """Use Apify LinkedIn Posts Scraper to get recent posts from a profile."""
-    apify_key = os.getenv("APIFY_API_KEY")
+    apify_key = os.getenv("APIFY_API_KEY") or os.getenv("APIFY_API_TOKEN")
     if not apify_key:
         print("  ✗ No APIFY_API_KEY set")
         return []

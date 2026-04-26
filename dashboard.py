@@ -589,7 +589,7 @@ if nav == "📡 Sources":
                         _html = _re.sub(r"<(script|style)[^>]*>.*?</(script|style)>", " ", _r.text, flags=_re.DOTALL | _re.IGNORECASE)
                         _page_text = _re.sub(r"\s+", " ", _re.sub(r"<[^>]+>", " ", _html)).strip()[:5000]
                         import anthropic as _anthropic
-                        _ai = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                        _ai = _get_anthropic_client()
                         _msg = _ai.messages.create(
                             model="claude-haiku-4-5-20251001", max_tokens=200,
                             messages=[{"role": "user", "content": f'Extract job info. Return ONLY JSON: {{"company":"...","title":"...","summary":"..."}}\n\n{_page_text}'}],
@@ -1509,7 +1509,7 @@ elif nav == "🔭 On Radar":
                     if st.button("⚡ Generate draft", key=f"gen_draft_{item['id']}"):
                         with st.spinner("Writing outreach message..."):
                             import anthropic as _anthropic
-                            _cl = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                            _cl = _get_anthropic_client()
                             _gen = _cl.messages.create(
                                 model="claude-sonnet-4-6",
                                 max_tokens=250,

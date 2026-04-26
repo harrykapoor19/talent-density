@@ -13,12 +13,13 @@ Attractiveness score (0-100):
 import os
 import json
 import anthropic
+from agent.client import get_anthropic_client
 from dotenv import load_dotenv
 from supabase import create_client
 
 load_dotenv()
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = get_anthropic_client()
 
 RACHITA_PROFILE = """
 CANDIDATE: Rachita Kumar

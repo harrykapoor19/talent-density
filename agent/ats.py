@@ -14,10 +14,11 @@ import os
 import json
 from pathlib import Path
 import anthropic
+from agent.client import get_anthropic_client
 from dotenv import load_dotenv
 
 load_dotenv()
-_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_client = get_anthropic_client()
 
 _PROFILE_DIR = Path(__file__).parent.parent / "profile"
 

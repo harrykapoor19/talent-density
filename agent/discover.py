@@ -290,7 +290,7 @@ def poll_linkedin() -> list[dict]:
     Uses very specific search terms to keep results relevant.
     Company size filter: 11-500 employees (no big tech).
     """
-    apify_key = os.getenv("APIFY_API_KEY")
+    apify_key = os.getenv("APIFY_API_KEY") or os.getenv("APIFY_API_TOKEN")
     if not apify_key:
         print("  ✗ LinkedIn: APIFY_API_KEY not set")
         return []
@@ -399,7 +399,7 @@ def poll_wats() -> list[dict]:
     Data structure: each item = {company: {...}, jobs: [{title, location, url}]}
     Filters to SF Bay Area, applies our standard title + no-list filters.
     """
-    apify_key = os.getenv("APIFY_API_KEY")
+    apify_key = os.getenv("APIFY_API_KEY") or os.getenv("APIFY_API_TOKEN")
     if not apify_key:
         print("  ✗ WATS: APIFY_API_KEY not set")
         return []

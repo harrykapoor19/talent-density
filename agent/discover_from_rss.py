@@ -16,6 +16,7 @@ import re
 import json
 import httpx
 import anthropic
+from agent.client import get_anthropic_client
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from dotenv import load_dotenv
@@ -24,7 +25,7 @@ from datetime import datetime, timezone
 
 load_dotenv()
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = get_anthropic_client()
 
 RSS_SEEN_PATH = Path(__file__).parent.parent / "data" / "rss_seen.json"
 

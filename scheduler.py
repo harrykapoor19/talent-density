@@ -121,7 +121,7 @@ def generate_morning_brief() -> str:
     import anthropic
     from supabase import create_client
     s = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-    claude = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    claude = get_anthropic_client()
 
     now = datetime.now(timezone.utc)
     last_monday = (now - timedelta(days=now.weekday())).replace(
@@ -378,6 +378,23 @@ def linkedin_monitor_job():
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
+# Job 4: Twitter watchlist monitor — every 20 min, 6am–10pm PT
+# ---------------------------------------------------------------------------
+
+def twitter_monitor_job():
+    log.info("=== Twitter Watchlist Check ===")
+    try:
+        from agent.twitter_monitor import run_twitter_monitor_job
+        new_posts = run_twitter_monitor_job()
+        if new_posts:
+            log.info(f"Twitter monitor: {len(new_posts)} new post(s) — notifications sent")
+        else:
+            log.info("Twitter monitor: no new posts")
+    except Exception as e:
+        log.error(f"Twitter monitor failed: {e}", exc_info=True)
+
+
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     log.info("Job Agent Scheduler starting")
@@ -454,11 +471,27 @@ if __name__ == "__main__":
         replace_existing=True,
     )
 
+    # Twitter watchlist monitor — every 20 min, Mon-Sat 6am–10pm PT
+    # Fires macOS notification within ~20 min of a watchlist person posting
+    scheduler.add_job(
+        twitter_monitor_job,
+        trigger=CronTrigger(
+            day_of_week="mon-sat",
+            hour="6-22",
+            minute="*/20",
+            timezone="America/Los_Angeles",
+        ),
+        id="twitter_monitor",
+        name="Twitter Watchlist Monitor",
+        replace_existing=True,
+    )
+
     log.info("Scheduler running:")
     log.info("  Job board polling      — Monday 9:00am PT (Ashby, Greenhouse, LinkedIn, WATS)")
     log.info("  RSS scan (3 sources)   — Monday 9:05am PT")
     log.info("  LinkedIn curator scan  — Monday + Thursday 9:10am PT")
     log.info("  Monday brief + to-do   — Monday 10:00am PT")
+    log.info("  Twitter monitor        — every 20 min, Mon-Sat 6am–10pm PT")
     log.info("Press Ctrl+C to stop.")
 
     try:
