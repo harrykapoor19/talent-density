@@ -4,36 +4,76 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-surface-secondary text-fg antialiased font-sans;
+  }
+  ::selection {
+    @apply bg-brand-100 text-brand-700;
   }
 }
 
 @layer components {
+  /* Base button — standard size for top-level actions */
   .btn {
-    @apply px-3 py-1.5 rounded-lg font-medium text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border-0 outline-none;
+    @apply px-3 py-1.5 rounded-md font-medium text-body transition-all duration-150 cursor-pointer
+      disabled:opacity-40 disabled:cursor-not-allowed border-0 outline-none
+      inline-flex items-center justify-center gap-1.5 h-8;
+  }
+  /* Compact button — for in-card / inline actions */
+  .btn-sm {
+    @apply px-2 py-1 rounded font-medium text-caption transition-all duration-150 cursor-pointer
+      disabled:opacity-40 disabled:cursor-not-allowed border-0 outline-none
+      inline-flex items-center justify-center gap-1 h-[26px];
   }
   .btn-primary {
-    @apply btn bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700;
+    @apply bg-fg text-white hover:bg-neutral-800 active:bg-neutral-700;
   }
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50;
+    @apply bg-surface-primary text-fg-secondary border border-border
+      hover:bg-surface-hover hover:text-fg active:bg-surface-active;
   }
   .btn-ghost {
-    @apply btn text-gray-500 hover:bg-gray-100 hover:text-gray-700;
+    @apply text-fg-secondary hover:bg-surface-active hover:text-fg;
   }
   .btn-success {
-    @apply btn bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100;
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200
+      hover:bg-emerald-100;
   }
   .btn-warning {
-    @apply btn bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100;
+    @apply bg-amber-50 text-amber-700 border border-amber-200
+      hover:bg-amber-100;
   }
   .btn-danger {
-    @apply btn bg-red-50 text-red-600 border border-red-200 hover:bg-red-100;
+    @apply bg-red-50 text-red-600 border border-red-200
+      hover:bg-red-100;
+  }
+  .btn-brand {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700;
   }
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+    @apply bg-surface-primary rounded-lg border border-border;
   }
   .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-1.5 py-px rounded text-[10px] font-medium leading-tight;
   }
+  .skeleton {
+    @apply bg-surface-active rounded animate-pulse;
+  }
+}
+
+@keyframes btn-flash {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.96); }
+  60% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.btn-action-done {
+  animation: btn-flash 0.4s ease-out;
+}
+
+@keyframes slide-in-right {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out forwards;
 }

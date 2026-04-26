@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../components/Toast'
+import Spinner from '../components/Spinner'
+import { ListSkeleton } from '../components/Skeleton'
 import ScoreBadge from '../components/ScoreBadge'
+import FilterLink from '../components/FilterLink'
+import { Mail, Check, ThumbsDown, ExternalLink, ChevronUp, ChevronDown, Sparkles, RefreshCw, Search } from 'lucide-react'
 
 const NOT_FOR_ME_REASONS = [
   'Wrong sector', 'Wrong stage', 'Not AI enough',
@@ -15,13 +20,12 @@ function RadarCard({ item, onHide }) {
   const [loading, setLoading] = useState(false)
   const [showNotForMe, setShowNotForMe] = useState(false)
   const [nfmReason, setNfmReason] = useState(NOT_FOR_ME_REASONS[0])
+  const toast = useToast()
 
   const score = item.attention_score
   const status = item.radar_status
   const isReachedOut = status === 'reached_out'
   const hasDraft = !!draft.trim()
-
-  const statusPrefix = status === 'reached_out' ? '✉️ ' : status === 'applied' ? '✅ ' : ''
 
   const saveDraft = async () => {
     await supabase.from('companies').update({ relationship_message: draft }).eq('id', item.id)
@@ -39,9 +43,10 @@ function RadarCard({ item, onHide }) {
       if (data.message) {
         setDraft(data.message)
         setExpanded(true)
+        toast('Draft generated', 'success')
       }
     } catch (e) {
-      console.error('Draft generation failed:', e)
+      toast('Draft generation failed', 'error')
     }
     setGenerating(false)
   }
@@ -50,6 +55,7 @@ function RadarCard({ item, onHide }) {
     setLoading(true)
     await supabase.from('companies').update({ radar_status: 'reached_out' }).eq('id', item.id)
     setLoading(false)
+    toast(`Marked ${item.name} as reached out`, 'success')
     onHide(item.id)
   }
 
@@ -57,6 +63,7 @@ function RadarCard({ item, onHide }) {
     setLoading(true)
     await supabase.from('companies').update({ radar_status: 'applied' }).eq('id', item.id)
     setLoading(false)
+    toast(`Moved ${item.name} to Applied`, 'success')
     onHide(item.id)
   }
 
@@ -68,6 +75,7 @@ function RadarCard({ item, onHide }) {
       .eq('company_name', item.name)
       .in('status', ['new', 'borderline', 'prep_ready'])
     setLoading(false)
+    toast(`Dismissed ${item.name}`, 'info')
     onHide(item.id)
   }
 
@@ -76,101 +84,115 @@ function RadarCard({ item, onHide }) {
       {/* Header row — always visible */}
       <button
         onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-start gap-3 p-3 text-left hover:bg-gray-50/60 transition-colors"
+        aria-expanded={expanded}
+        className="w-full flex items-start gap-1.5 p-2.5 text-left hover:bg-surface-hover transition-colors min-h-[36px]"
       >
-        <ScoreBadge score={score} label="attn" size="sm" />
+        <ScoreBadge score={score} size="sm" />
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-gray-900 text-sm">
-            {statusPrefix}{item.name}
-            {item._isNew && <span className="ml-2 badge bg-emerald-50 text-emerald-700 font-bold uppercase tracking-wide text-[0.65rem]">new</span>}
+          <div className="font-medium text-fg text-body inline-flex items-center gap-1.5">
+            {isReachedOut && <Mail size={12} className="text-amber-600" />}
+            {status === 'applied' && <Check size={12} className="text-emerald-600" />}
+            {item.name}
+            {item._isNew && <span className="badge bg-emerald-50 text-emerald-700 font-bold uppercase tracking-wide text-[0.65rem]">new</span>}
           </div>
           {item.what_they_do && (
-            <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.what_they_do}</div>
+            <div className="text-caption text-fg-secondary mt-0.5 line-clamp-1">{item.what_they_do}</div>
           )}
           <div className="flex flex-wrap gap-1 mt-1">
-            {item.sector && <span className="badge bg-gray-100 text-gray-600">{item.sector}</span>}
-            {item.stage && <span className="badge bg-gray-100 text-gray-600">{item.stage}</span>}
-            {item.funding_info && <span className="badge bg-gray-100 text-gray-600">{item.funding_info}</span>}
-            {item.investors && <span className="text-xs text-gray-400">backed by {item.investors}</span>}
+            {item.sector && <span className="badge bg-surface-tertiary text-fg-secondary">{item.sector}</span>}
+            {item.stage && <span className="badge bg-surface-tertiary text-fg-secondary">{item.stage}</span>}
+            {item.funding_info && <span className="badge bg-surface-tertiary text-fg-secondary">{item.funding_info}</span>}
+            {item.investors && <span className="text-caption text-fg-muted">backed by {item.investors}</span>}
           </div>
         </div>
-        <span className="text-gray-400 text-xs mt-0.5 shrink-0">{expanded ? '▲' : '▼'}</span>
+        <span className="text-fg-muted mt-0.5 shrink-0">
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
       </button>
 
       {/* Expanded content */}
       {expanded && (
-        <div className="border-t border-gray-100 p-3 space-y-3">
+        <div className="border-t border-border-subtle p-2.5 space-y-2.5 animate-fade-in">
           {/* Action buttons */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             <button
-              className={isReachedOut ? 'btn bg-amber-100 text-amber-700 border border-amber-200' : 'btn-warning'}
+              className={isReachedOut ? 'btn-sm bg-amber-100 text-amber-700 border border-amber-200' : 'btn-warning btn-sm'}
               onClick={markReachedOut}
               disabled={loading || isReachedOut}
             >
-              {isReachedOut ? '✉️ Sent ✓' : '✉️ Reached Out'}
+              {loading ? <Spinner size={12} /> : <Mail size={12} />}
+              {isReachedOut ? 'Sent' : 'Reached Out'}
             </button>
-            <button className="btn-primary" onClick={markApplied} disabled={loading}>✅ Applied</button>
+            <button className="btn-primary btn-sm" onClick={markApplied} disabled={loading}>
+              {loading ? <Spinner size={12} /> : <Check size={12} />} Applied
+            </button>
             {!showNotForMe && (
-              <button className="btn-danger" onClick={() => setShowNotForMe(true)} disabled={loading}>
-                Not for me
+              <button className="btn-danger btn-sm" onClick={() => setShowNotForMe(true)} disabled={loading}>
+                <ThumbsDown size={12} /> Not for me
               </button>
             )}
             {item.source_url && (
-              <a href={item.source_url} target="_blank" rel="noreferrer" className="btn-secondary ml-auto">↗</a>
+              <a href={item.source_url} target="_blank" rel="noreferrer" className="btn-secondary btn-sm ml-auto">
+                <ExternalLink size={12} />
+              </a>
             )}
           </div>
 
           {/* Not for me form */}
           {showNotForMe && (
-            <div className="bg-red-50 rounded-lg p-2.5 space-y-2">
-              <div className="text-xs font-medium text-red-700">Why is {item.name} not a fit?</div>
+            <div className="bg-red-50 rounded-md p-2.5 space-y-1.5 animate-fade-in">
+              <div className="text-caption font-medium text-red-700">Why is {item.name} not a fit?</div>
               <select
                 value={nfmReason}
                 onChange={e => setNfmReason(e.target.value)}
-                className="border border-red-200 rounded px-2 py-1 text-xs w-full bg-white"
+                className="border border-red-200 rounded-md px-3 py-2 text-caption w-full bg-surface-primary min-h-[30px]"
               >
                 {NOT_FOR_ME_REASONS.map(r => <option key={r}>{r}</option>)}
               </select>
-              <div className="flex gap-2">
-                <button onClick={confirmNotForMe} disabled={loading} className="btn-danger text-xs">Confirm</button>
-                <button onClick={() => setShowNotForMe(false)} className="btn-secondary text-xs">Cancel</button>
+              <div className="flex gap-1.5">
+                <button onClick={confirmNotForMe} disabled={loading} className="btn-danger btn-sm">
+                  {loading ? <Spinner size={12} /> : 'Confirm'}
+                </button>
+                <button onClick={() => setShowNotForMe(false)} className="btn-secondary btn-sm">Cancel</button>
               </div>
             </div>
           )}
 
           {/* Outreach draft */}
           <div>
-            <div className="text-xs font-medium text-gray-500 mb-1.5">Outreach draft</div>
+            <div className="text-caption font-medium text-fg-secondary mb-1.5">Outreach draft</div>
             {hasDraft ? (
               <textarea
                 value={draft}
                 onChange={e => setDraft(e.target.value)}
                 onBlur={saveDraft}
                 rows={5}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-200 resize-none"
+                className="w-full border border-border rounded-md px-3 py-2 text-caption text-fg focus:outline-none focus:ring-2 focus:ring-brand-200 resize-none min-h-[36px]"
               />
             ) : (
-              <div className="space-y-2">
-                <div className="text-xs text-gray-400 italic">No draft yet.</div>
+              <div className="space-y-1.5">
+                <div className="text-caption text-fg-muted italic">No draft yet.</div>
                 <button
-                  className="btn-primary text-xs"
+                  className="btn-primary btn-sm"
                   onClick={generateDraft}
                   disabled={generating}
                 >
-                  {generating ? 'Generating...' : '✦ Generate draft'}
+                  {generating ? <Spinner size={12} /> : <Sparkles size={12} />}
+                  {generating ? 'Generating...' : 'Generate draft'}
                 </button>
               </div>
             )}
             {hasDraft && (
-              <div className="flex gap-2 mt-1.5">
+              <div className="flex gap-1.5 mt-1.5">
                 <button
-                  className="btn-ghost text-xs"
+                  className="btn-ghost btn-sm"
                   onClick={generateDraft}
                   disabled={generating}
                 >
-                  {generating ? 'Regenerating...' : '↻ Regenerate'}
+                  {generating ? <Spinner size={12} /> : <RefreshCw size={12} />}
+                  {generating ? 'Regenerating...' : 'Regenerate'}
                 </button>
-                <span className="text-xs text-gray-400 self-center">{draft.length} chars</span>
+                <span className="text-caption text-fg-muted self-center">{draft.length} chars</span>
               </div>
             )}
           </div>
@@ -259,55 +281,50 @@ export default function OnRadar() {
   }, [companies, hiddenIds, statusFilter, sectorFilter, stageFilter, scoreFilter, search])
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <input
-          type="text"
-          placeholder="Search company or sector..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-        />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
-          <option>Not yet contacted</option>
-          <option>Has draft</option>
-          <option>All</option>
-          <option>Reached out</option>
-          <option>Applied</option>
-        </select>
-        <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
-          {allSectors.map(s => <option key={s}>{s}</option>)}
-        </select>
-        <select value={stageFilter} onChange={e => setStageFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
-          {allStages.map(s => <option key={s}>{s}</option>)}
-        </select>
-        <select value={scoreFilter} onChange={e => setScoreFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
-          <option>All scores</option>
-          <option>High (80+)</option>
-          <option>Medium (60-79)</option>
-          <option>Low (&lt;60)</option>
-        </select>
+    <div className="space-y-3">
+      {/* Filter bar — minimal inline */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 flex-1 max-w-xs">
+          <Search size={12} className="text-fg-muted shrink-0" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-transparent text-body text-fg placeholder-fg-muted outline-none border-b border-transparent focus:border-fg-faint transition-colors pb-0.5"
+          />
+        </div>
+        <div className="flex items-center gap-3 text-body">
+          <FilterLink label="Status" value={statusFilter} onChange={setStatusFilter}
+            options={['Not yet contacted', 'Has draft', 'All', 'Reached out', 'Applied']} />
+          <span className="text-fg-faint">·</span>
+          <FilterLink label="Sector" value={sectorFilter} onChange={setSectorFilter}
+            options={allSectors} />
+          <span className="text-fg-faint">·</span>
+          <FilterLink label="Stage" value={stageFilter} onChange={setStageFilter}
+            options={allStages} />
+          <span className="text-fg-faint">·</span>
+          <FilterLink label="Score" value={scoreFilter} onChange={setScoreFilter}
+            options={['All scores', 'High (80+)', 'Medium (60-79)', 'Low (<60)']} />
+        </div>
       </div>
 
       {/* Count line */}
-      <div className="text-sm text-gray-400">
+      <div className="text-caption text-fg-muted">
         {filtered.length} {filtered.length === 1 ? 'company' : 'companies'}
-        {(() => { const n = filtered.filter(c => c._isNew).length; return n > 0 ? <span className="ml-2 text-emerald-600 font-medium">· {n} new this week</span> : null })()}
+        {(() => { const n = filtered.filter(c => c._isNew).length; return n > 0 ? <span className="ml-1.5 text-emerald-600 font-medium">· {n} new this week</span> : null })()}
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-400 text-sm">Loading...</div>
+        <ListSkeleton count={6} />
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 text-sm">No companies matching this filter.</div>
+        <div className="text-center py-12 text-fg-muted text-body">No companies matching this filter.</div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map(item => (
-            <RadarCard key={item.id} item={item} onHide={hideItem} />
+        <div className="space-y-1.5">
+          {filtered.map((item, i) => (
+            <div key={item.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
+              <RadarCard item={item} onHide={hideItem} />
+            </div>
           ))}
         </div>
       )}

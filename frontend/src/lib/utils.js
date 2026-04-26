@@ -77,9 +77,9 @@ export function relativeDate(dateStr) {
 }
 
 export function scoreColor(score) {
-  if (score == null) return { bg: 'bg-gray-100', text: 'text-gray-400', border: 'border-gray-200' }
-  if (score >= 75) return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-300' }
-  if (score >= 55) return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' }
+  if (score == null) return { bg: 'bg-surface-tertiary', text: 'text-fg-muted', border: 'border-border' }
+  if (score >= 75) return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' }
+  if (score >= 55) return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' }
   return { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
 }
 

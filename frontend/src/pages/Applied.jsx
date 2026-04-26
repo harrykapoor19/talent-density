@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmtDateMDY } from '../lib/utils'
+import { RowSkeleton } from '../components/Skeleton'
+import { Clock } from 'lucide-react'
 
 function AppliedRow({ job, showCompany }) {
   const [bd, setBd] = useState(job.score_breakdown || {})
@@ -12,7 +14,7 @@ function AppliedRow({ job, showCompany }) {
   let followupUrgent = false
   if (followupAt) {
     const daysLeft = Math.floor((new Date(followupAt) - Date.now()) / 86400000)
-    followupDisplay = daysLeft <= 0 ? '⏰ Due now' : `In ${daysLeft}d`
+    followupDisplay = daysLeft <= 0 ? 'Due now' : `In ${daysLeft}d`
     followupUrgent = daysLeft <= 0
   }
 
@@ -40,51 +42,51 @@ function AppliedRow({ job, showCompany }) {
   }
 
   return (
-    <tr className="hover:bg-gray-50/50">
-      <td className="px-4 py-3 font-medium text-gray-900">
+    <tr className="hover:bg-surface-hover transition-colors">
+      <td className="px-3 py-2.5 font-medium text-fg">
         {showCompany ? job.company_name : ''}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-600">
+      <td className="px-3 py-2.5 text-body text-fg-secondary">
         {job.url
-          ? <a href={job.url} target="_blank" rel="noreferrer" className="hover:text-brand-600">{job.title}</a>
+          ? <a href={job.url} target="_blank" rel="noreferrer" className="hover:text-brand-600 transition-colors">{job.title}</a>
           : job.title}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <input
           type="text"
           value={appliedDate}
           onChange={e => setAppliedDate(e.target.value)}
           onBlur={saveDate}
           placeholder="MM/DD/YY"
-          className="border border-gray-200 rounded px-2 py-1 text-xs w-24 focus:outline-none focus:ring-1 focus:ring-brand-200"
+          className="border border-border rounded-md px-3 py-2 text-caption w-24 focus:outline-none focus:ring-2 focus:ring-brand-200 min-h-[30px]"
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <div className="flex flex-col gap-0.5">
-          <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-caption text-fg-secondary cursor-pointer min-h-[30px]">
             <input
               type="checkbox"
               checked={!!followupAt}
               onChange={e => toggleFollowup(e.target.checked)}
-              className="rounded"
+              className="rounded w-4 h-4"
             />
             Follow up
           </label>
           {followupDisplay && (
-            <span className={`text-xs ${followupUrgent ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
-              {followupDisplay}
+            <span className={`text-caption inline-flex items-center gap-1 ${followupUrgent ? 'text-red-500 font-medium' : 'text-fg-muted'}`}>
+              <Clock size={12} /> {followupDisplay}
             </span>
           )}
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <input
           type="text"
           value={notes}
           onChange={e => setNotes(e.target.value)}
           onBlur={saveNotes}
           placeholder="Add notes..."
-          className="border border-gray-200 rounded px-2 py-1 text-xs w-full min-w-40 focus:outline-none focus:ring-1 focus:ring-brand-200"
+          className="border border-border rounded-md px-3 py-2 text-caption w-full min-w-40 focus:outline-none focus:ring-2 focus:ring-brand-200 min-h-[30px]"
         />
       </td>
     </tr>
@@ -108,7 +110,6 @@ export default function Applied() {
     fetch()
   }, [])
 
-  // Group by company, sorted by most recent applied_at
   const grouped = (() => {
     const byCompany = {}
     for (const j of jobs) {
@@ -127,23 +128,38 @@ export default function Applied() {
   })()
 
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-gray-400">{jobs.length} applications tracked</div>
+    <div className="space-y-3">
+      <div className="text-caption text-fg-muted">{jobs.length} applications tracked</div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-400 text-sm">Loading...</div>
-      ) : jobs.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm">No applications tracked yet.</div>
-      ) : (
         <div className="card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-body">
+            <thead className="bg-surface-secondary border-b border-border-subtle">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Applied On</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Follow-up</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Notes</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Company</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Role</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Applied On</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Follow-up</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 4 }).map((_, i) => <RowSkeleton key={i} />)}
+            </tbody>
+          </table>
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-16 text-fg-muted text-body">No applications tracked yet.</div>
+      ) : (
+        <div className="card overflow-hidden animate-fade-in">
+          <table className="w-full text-body">
+            <thead className="bg-surface-secondary border-b border-border-subtle">
+              <tr>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Company</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Role</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Applied On</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Follow-up</th>
+                <th className="text-left px-3 py-2.5 font-medium text-fg-secondary text-label">Notes</th>
               </tr>
             </thead>
             <tbody>
@@ -152,7 +168,7 @@ export default function Applied() {
                   {companyJobs.map((job, idx) => (
                     <AppliedRow key={job.id} job={job} showCompany={idx === 0} />
                   ))}
-                  <tr key={`sep-${company}`} className="border-t border-gray-100">
+                  <tr key={`sep-${company}`} className="border-t border-border-subtle">
                     <td colSpan={5} className="py-0" />
                   </tr>
                 </>
