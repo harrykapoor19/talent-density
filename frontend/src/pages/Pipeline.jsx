@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { apiFetch } from '../lib/api'
 import { daysSince, fmtDateMDY } from '../lib/utils'
 import { useToast } from '../components/Toast'
 import Spinner from '../components/Spinner'
@@ -43,7 +44,7 @@ function PipelineCard({ job, onUpdate }) {
   const generatePrep = async () => {
     setGenerating(true)
     try {
-      const resp = await fetch('/api/pipeline/generate-prep', {
+      const resp = await apiFetch('/api/pipeline/generate-prep', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

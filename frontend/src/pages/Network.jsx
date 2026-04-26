@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { apiFetch } from '../lib/api'
 import { Users, Eye, RefreshCw, X, AlertTriangle, Search } from 'lucide-react'
 import Spinner from '../components/Spinner'
 import PersonCard from '../components/PersonCard'
@@ -37,7 +38,7 @@ export default function Network() {
   const loadWatchlist = async () => {
     setWatchlistLoading(true)
     try {
-      const res = await fetch('/api/network/watchlist')
+      const res = await apiFetch('/api/network/watchlist')
       const data = await res.json()
       setWatchlist(data.watchlist || [])
     } catch {
@@ -54,7 +55,7 @@ export default function Network() {
     setFindResults(null)
 
     try {
-      const res = await fetch('/api/network/find-people', {
+      const res = await apiFetch('/api/network/find-people', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_name: company.trim(), role_hint: roleHint.trim() }),
@@ -66,7 +67,7 @@ export default function Network() {
       findPollRef.current = setInterval(async () => {
         elapsed += 1500
         try {
-          const poll = await fetch(`/api/network/find-people/status/${findJobIdRef.current}`)
+          const poll = await apiFetch(`/api/network/find-people/status/${findJobIdRef.current}`)
           const pd = await poll.json()
           if (pd.status === 'done') {
             clearInterval(findPollRef.current)
@@ -92,7 +93,7 @@ export default function Network() {
 
   const handleAddToWatchlist = async (person) => {
     try {
-      const res = await fetch('/api/network/watchlist/add', {
+      const res = await apiFetch('/api/network/watchlist/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,7 +118,7 @@ export default function Network() {
 
   const handleRemoveFromWatchlist = async (handle) => {
     try {
-      await fetch('/api/network/watchlist/remove', {
+      await apiFetch('/api/network/watchlist/remove', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ twitter_handle: handle }),
@@ -135,13 +136,13 @@ export default function Network() {
     setChecking(true)
 
     try {
-      const res = await fetch('/api/network/watchlist/check', { method: 'POST' })
+      const res = await apiFetch('/api/network/watchlist/check', { method: 'POST' })
       const data = await res.json()
       checkJobIdRef.current = data.job_id
 
       checkPollRef.current = setInterval(async () => {
         try {
-          const poll = await fetch(`/api/network/watchlist/check/status/${checkJobIdRef.current}`)
+          const poll = await apiFetch(`/api/network/watchlist/check/status/${checkJobIdRef.current}`)
           const pd = await poll.json()
           if (pd.status === 'done') {
             clearInterval(checkPollRef.current)

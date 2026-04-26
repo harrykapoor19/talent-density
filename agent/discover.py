@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 from datetime import datetime
 from apify_client import ApifyClient
+from agent.user_context import current_user_id
 
 load_dotenv()
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
@@ -179,6 +180,9 @@ def save_job(company_name: str, company_id, title: str, url: str, source: str, r
         "jd_text": jd_text or None,
         "score_breakdown": {"role_type": role_type},
     }
+    uid = current_user_id.get()
+    if uid:
+        data["user_id"] = uid
     supabase.table("jobs").insert(data).execute()
     return True
 

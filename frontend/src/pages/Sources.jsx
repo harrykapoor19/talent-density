@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { apiFetch } from '../lib/api'
 import { useToast } from '../components/Toast'
 import Spinner from '../components/Spinner'
 import { Play, Sparkles, ScanSearch, Plus, Server, Rss, Brain, Globe, Database, Timer, Search, ChevronDown } from 'lucide-react'
@@ -136,7 +137,7 @@ export default function Sources() {
     setRunning(true)
     setRunLog(null)
     try {
-      const resp = await fetch('/api/pipeline/run', { method: 'POST' })
+      const resp = await apiFetch('/api/pipeline/run', { method: 'POST' })
       const data = await resp.json()
       setRunLog(data)
       toast('Pipeline run complete', 'success')
@@ -153,7 +154,7 @@ export default function Sources() {
     setExtractResult(null)
     setExtractWorkflowResult(null)
     try {
-      const resp = await fetch('/api/sources/extract-post', {
+      const resp = await apiFetch('/api/sources/extract-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: postText }),
@@ -170,7 +171,7 @@ export default function Sources() {
   const pollForResult = async (jobId, setResult, setRunning) => {
     const poll = async () => {
       try {
-        const resp = await fetch(`/api/pipeline/status/${jobId}`)
+        const resp = await apiFetch(`/api/pipeline/status/${jobId}`)
         const data = await resp.json()
         if (data.status === 'done') {
           setResult(data.result)
@@ -192,7 +193,7 @@ export default function Sources() {
     setExtractWorkflowRunning(true)
     setExtractWorkflowResult(null)
     try {
-      const resp = await fetch('/api/pipeline/run-for-companies', {
+      const resp = await apiFetch('/api/pipeline/run-for-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ companies }),
@@ -215,12 +216,12 @@ export default function Sources() {
     setScanResult(null)
     setScanWorkflowResult(null)
     try {
-      const resp = await fetch('/api/sources/funding-scan', { method: 'POST' })
+      const resp = await apiFetch('/api/sources/funding-scan', { method: 'POST' })
       const data = await resp.json()
       if (data.job_id) {
         const poll = async () => {
           try {
-            const r = await fetch(`/api/sources/funding-scan/status/${data.job_id}`)
+            const r = await apiFetch(`/api/sources/funding-scan/status/${data.job_id}`)
             const status = await r.json()
             if (status.status === 'done') {
               setScanResult(status.result)
@@ -249,7 +250,7 @@ export default function Sources() {
     setScanWorkflowRunning(true)
     setScanWorkflowResult(null)
     try {
-      const resp = await fetch('/api/pipeline/run-for-companies', {
+      const resp = await apiFetch('/api/pipeline/run-for-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ companies }),
@@ -272,7 +273,7 @@ export default function Sources() {
     setAdding(true)
     setAddResult(null)
     try {
-      const resp = await fetch('/api/sources/add', {
+      const resp = await apiFetch('/api/sources/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: addInput }),

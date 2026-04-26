@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { apiFetch } from '../lib/api'
 import { Sparkles, Search, AlertCircle, TrendingUp, Users, Globe, Cpu, Target, AlertTriangle, Flag } from 'lucide-react'
 import Spinner from '../components/Spinner'
 
@@ -33,7 +34,7 @@ export default function Roadmap() {
     setError(null)
     setData(null)
     try {
-      const resp = await fetch('/api/roadmap/predict', {
+      const resp = await apiFetch('/api/roadmap/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_name: companyName.trim() }),

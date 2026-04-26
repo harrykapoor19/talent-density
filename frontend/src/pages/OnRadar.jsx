@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { apiFetch } from '../lib/api'
 import { useToast } from '../components/Toast'
 import Spinner from '../components/Spinner'
 import { ListSkeleton } from '../components/Skeleton'
@@ -34,7 +35,7 @@ function RadarCard({ item, onHide }) {
   const generateDraft = async () => {
     setGenerating(true)
     try {
-      const resp = await fetch('/api/radar/generate-draft', {
+      const resp = await apiFetch('/api/radar/generate-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_id: item.id, company: item.name, what_they_do: item.what_they_do }),

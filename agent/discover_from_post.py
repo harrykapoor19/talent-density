@@ -17,6 +17,7 @@ import json
 import httpx
 import anthropic
 from agent.client import get_anthropic_client
+from agent.user_context import current_user_id
 from dotenv import load_dotenv
 from supabase import create_client
 
@@ -165,6 +166,9 @@ def process_post(url: str = None, text: str = None) -> dict:
             "source": "post",
             "radar_status": "watching",
         }
+        uid = current_user_id.get()
+        if uid:
+            row["user_id"] = uid
 
         try:
             supabase.table("companies").insert(row).execute()

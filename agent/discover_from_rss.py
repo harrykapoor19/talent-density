@@ -17,6 +17,7 @@ import json
 import httpx
 import anthropic
 from agent.client import get_anthropic_client
+from agent.user_context import current_user_id
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from dotenv import load_dotenv
@@ -720,6 +721,9 @@ def save_to_companies(
             row["stage"] = stage
         if investors:
             row["investors"] = investors
+        uid = current_user_id.get()
+        if uid:
+            row["user_id"] = uid
         supabase.table("companies").insert(row).execute()
         return True
     except Exception as e:

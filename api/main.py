@@ -7,6 +7,7 @@ FastAPI backend for job agent operations that require Python:
 import os
 import sys
 import subprocess
+import contextvars
 from pathlib import Path
 from typing import Optional
 from datetime import datetime, timezone
@@ -212,11 +213,19 @@ async def extract_post(req: ExtractPostRequest):
 _scan_jobs: dict = {}
 
 @app.post("/api/sources/funding-scan")
-async def funding_scan():
+async def funding_scan(authorization: Optional[str] = Header(None)):
     """Scan TechCrunch and Next Play RSS for new companies (background)."""
     import threading, uuid
+    from agent.user_context import current_user_id as _current_user_id
+    if authorization and authorization.startswith("Bearer "):
+        try:
+            uid = await require_user(authorization)
+            _current_user_id.set(uid)
+        except Exception:
+            pass
     job_id = str(uuid.uuid4())[:8]
     _scan_jobs[job_id] = {"status": "running", "result": None}
+    ctx = contextvars.copy_context()
 
     def _run():
         try:
@@ -226,7 +235,7 @@ async def funding_scan():
         except Exception as e:
             _scan_jobs[job_id] = {"status": "error", "result": {"error": str(e)}}
 
-    threading.Thread(target=_run, daemon=True).start()
+    threading.Thread(target=ctx.run, args=(_run,), daemon=True).start()
     return {"job_id": job_id, "status": "running"}
 
 
@@ -243,7 +252,7 @@ class AddInputRequest(BaseModel):
 
 
 @app.post("/api/sources/add")
-async def add_companies(req: AddInputRequest):
+async def add_companies(req: AddInputRequest, authorization: Optional[str] = Header(None)):
     """
     Add company names or job URLs to the dashboard.
     Company names -> added to companies table, queued for pipeline.
@@ -256,6 +265,15 @@ async def add_companies(req: AddInputRequest):
     lines = [l.strip() for l in _re.split(r"[\n,]+", req.input) if l.strip()]
     urls = [l for l in lines if l.startswith("http")]
     names = [l for l in lines if not l.startswith("http")]
+
+    from agent.user_context import current_user_id as _current_user_id
+    _uid = None
+    if authorization and authorization.startswith("Bearer "):
+        try:
+            _uid = (await require_user(authorization))
+        except Exception:
+            pass
+    _ctx_token = _current_user_id.set(_uid) if _uid else None
 
     jobs_added = []
     jobs_failed = []
@@ -309,7 +327,10 @@ async def add_companies(req: AddInputRequest):
             # Ensure company exists
             co_res = sb.table("companies").select("id").ilike("name", co_name).execute()
             if not co_res.data:
-                sb.table("companies").insert({"name": co_name, "source": "manual", "attention_score": 80}).execute()
+                _co_row = {"name": co_name, "source": "manual", "attention_score": 80}
+                if _uid:
+                    _co_row["user_id"] = _uid
+                sb.table("companies").insert(_co_row).execute()
             co_id_res = sb.table("companies").select("id").ilike("name", co_name).execute()
             co_id = co_id_res.data[0]["id"] if co_id_res.data else None
 
@@ -317,12 +338,15 @@ async def add_companies(req: AddInputRequest):
             if existing.data:
                 jobs_added.append(f"{co_name} — {title} (already in Open Roles)")
             else:
-                sb.table("jobs").insert({
+                _job_row = {
                     "company_name": co_name, "company_id": co_id,
                     "title": title, "url": jurl, "jd_text": summary,
                     "source": "manual", "attractiveness_score": 80,
                     "status": "new", "seniority_pass": True, "no_list_pass": True,
-                }).execute()
+                }
+                if _uid:
+                    _job_row["user_id"] = _uid
+                sb.table("jobs").insert(_job_row).execute()
                 jobs_added.append(f"{co_name} — {title}")
         except Exception as e:
             jobs_failed.append(f"{jurl}: {str(e)[:80]}")
@@ -350,6 +374,9 @@ async def add_companies(req: AddInputRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+    if _ctx_token is not None:
+        _current_user_id.reset(_ctx_token)
+
     return {
         "jobs_added": jobs_added,
         "jobs_failed": jobs_failed,
@@ -367,11 +394,19 @@ class RunForCompaniesRequest(BaseModel):
 _pipeline_jobs: dict = {}
 
 @app.post("/api/pipeline/run-for-companies")
-async def run_for_companies(req: RunForCompaniesRequest):
+async def run_for_companies(req: RunForCompaniesRequest, authorization: Optional[str] = Header(None)):
     """Run the scoring pipeline for a specific list of company names (background)."""
     import threading, uuid
+    from agent.user_context import current_user_id as _current_user_id
+    if authorization and authorization.startswith("Bearer "):
+        try:
+            uid = await require_user(authorization)
+            _current_user_id.set(uid)
+        except Exception:
+            pass
     job_id = str(uuid.uuid4())[:8]
     _pipeline_jobs[job_id] = {"status": "running", "total": len(req.companies), "result": None}
+    ctx = contextvars.copy_context()
 
     def _run():
         try:
@@ -381,7 +416,7 @@ async def run_for_companies(req: RunForCompaniesRequest):
         except Exception as e:
             _pipeline_jobs[job_id] = {"status": "error", "total": len(req.companies), "result": {"error": str(e)}}
 
-    threading.Thread(target=_run, daemon=True).start()
+    threading.Thread(target=ctx.run, args=(_run,), daemon=True).start()
     return {"job_id": job_id, "status": "running", "total": len(req.companies)}
 
 
